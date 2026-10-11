@@ -4,6 +4,7 @@ This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive`
 
 Downloads:
 
+- [Kodular test project (.aia)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia) — extension and example blocks included; [usage instructions](examples/README.md).
 - [Compiled Kodular extension (.aix)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/com.fabiyon.geminilive.aix)
 - [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v2.zip)
 - [Java source](src/com/fabiyon/geminilive/GeminiLive.java)
