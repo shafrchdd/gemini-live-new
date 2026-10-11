@@ -1,12 +1,12 @@
 # GeminiLive for Kodular
 
-This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. The extension version is 2.
+This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. Version 3 adds camera-photo and selected-image input with text prompts.
 
 Downloads:
 
 - [Kodular test project (.aia)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia) — extension and example blocks included; [usage instructions](examples/README.md).
 - [Compiled Kodular extension (.aix)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/com.fabiyon.geminilive.aix)
-- [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v2.zip)
+- [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v3.zip)
 - [Java source](src/com/fabiyon/geminilive/GeminiLive.java)
 - [Audit and device checklist](docs/AUDIT.md)
 
@@ -23,6 +23,10 @@ Use these blocks in this order:
 Do not start listening from `Connected`: that event confirms the WebSocket, while `SetupComplete` confirms Gemini has accepted the session. Calling `StartListening` requests the APK's microphone permission; a successful grant continues startup automatically. Companion and the installed APK have separate permission grants.
 
 The extension closes its connection and audio resources when its screen stops or is destroyed. Reconnect after returning to the screen. It does not change global Android audio mode, speaker routing, or volume, so it avoids taking control of other Kodular audio components. Other apps and extensions can still compete for Android microphone access.
+
+For vision, use `Camera.TakePicture` or `ImagePicker`, keep the returned image path/URI, connect after returning, then call `SendImage(imagePath, text)` after `SetupComplete`. The example includes these blocks, a preview, and a **Send photo** button. For a photo-only test, uncheck automatic listening before connecting. This release sends snapshots or selected photos; continuous camera streaming is not implemented.
+
+`SendImage` prepares the photo on a separate worker, reads at most 20 MiB, corrects EXIF orientation, and creates a JPEG up to 1024 pixels on its longest edge and 512 KiB. It accepts assets, accessible local paths, `file://`, and granted `content://` URIs. Camera/picker components handle their Android permissions; the extension does not bypass scoped storage. It sends a realtime image frame and its prompt consecutively, using the current Live cookbook protocol. Server processing order across media streams is not guaranteed. `ImageSent(imagePath)` confirms both network writes, not Gemini acknowledgment. `IsSendingImage()` covers preparation and transmission; only one photo can be pending per session. Wait for completion before sending other text if turn order matters.
 
 `MicrophoneLevel()` reports the latest captured peak, from 0 to 100. While speaking near the phone, a consistently zero level plus the zero-sample diagnostic suggests a device capture/privacy/route issue. Check Android's microphone privacy switch, this APK's microphone permission, and competing recording apps. Optional acoustic echo cancellation and noise suppression depend on the device; disable those properties before another microphone start if investigating device-specific effects.
 

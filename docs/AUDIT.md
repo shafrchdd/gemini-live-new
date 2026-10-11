@@ -1,4 +1,4 @@
-# Audit of GeminiLive version 2
+# Audit of GeminiLive version 3
 
 ## Scope and evidence
 
@@ -45,11 +45,19 @@ The model default remains `gemini-3.8-live`, confirmed in the current official G
 
 The second review additionally fixed pause/flush races: cancelled writes do not terminate playback, new chunks wait until flush cleanup completes, speaking updates use a consistent lock order, and expected teardown errors cannot leak an audio track. Temporary chunk playback errors are visible and later chunks can recreate the track.
 
-## Phase 3: validation and limits
+## Phase 3: photo input
+
+Version 3 adds `SendImage(imagePath, text)`, `IsSendingImage()`, and `ImageSent(imagePath)` without changing existing blocks. It follows the current Google Live cookbook: send `realtimeInput.video` with JPEG data, then `realtimeInput.text`. One shared writer task keeps these frames consecutive. This guarantees client transmission order, not cross-modal server processing order or acknowledgment.
+
+Photo preparation runs on a separate single-thread worker with one queued job, and one pending image is reserved per session until writing finishes. A bounded app-private temporary file holds at most 20 MiB of source data. Bounds inspection and sampled decoding limit bitmap dimensions, followed by scaling to a 1024-pixel edge, EXIF rotation/mirroring, and JPEG encoding capped at 512 KiB. All streams, temporary files, bitmaps, and reservations have cleanup paths. Disconnect cancels work, closes an active source asynchronously, and prevents a stale image entering a replacement session. Remote/data URLs are rejected; local media still requires Android access rights.
+
+The AIA embeds version 3 and adds native Camera, ImagePicker, preview, prompt, and send controls. It disconnects before launching external camera/gallery activities and waits for reconnection/readiness before sending. The existing foreground-only microphone lifecycle remains in effect. Continuous camera streaming is outside this release.
+
+## Phase 4: validation and limits
 
 The reproducible build uses genuine MIT annotation processors and extension packaging tools. It checks that generated extension metadata contains both required permissions and that the package contains valid DEX bytecode. Runtime tests execute the production extension bytecode with deterministic Android/App Inventor doubles. They test asynchronous permission and lifecycle behavior, not real hardware.
 
-Final validation passed: authentic Java compilation, official component metadata generation, DEX packaging, **53 transport tests, and 34 runtime tests** (87 passed, 0 failed). All original public block signatures were retained. `dist/validation-results.json` ties this result to the final source and `.aix` SHA-256 digests.
+Final validation passed: authentic Java compilation, official component metadata generation, DEX packaging, **53 transport tests, and 49 runtime tests** (102 passed, 0 failed). Image tests cover protocol shape, worker placement, resizing, orientation, byte budgets, cleanup, failures, pending reservations, disconnection/replacement, writer rejection, and camera activity lifecycle. All original public block signatures were retained. `dist/validation-results.json` ties this result to the final source and `.aix` SHA-256 digests. The AIA passes offline archive and block validation; actual Kodular import/export remains untested.
 
 The WebSocket tests exercise framing/handshake parsing and concurrent output using local streams. They do not authenticate to Gemini or validate a live TLS connection on an Android device. No API key was available in this task.
 
@@ -65,6 +73,7 @@ Twenty-millisecond capture batches reduce this extension's original capture batc
 6. Interrupt assistant playback by speaking with `MuteMicWhileSpeaking=false`; subsequent playback must still work. Toggle audio off/on and test another response.
 7. Test with another recording component stopped, then with the intended combination of components. Android may enforce microphone exclusivity; the extension cannot override that policy.
 8. Test the actual target phone/Android versions and measure response latency there. If the new diagnostics report zero PCM or initialization failure, use that message and the phone's Android version to isolate the remaining device issue.
+9. Capture a portrait photo and select a gallery image. Reconnect, wait for readiness, and send each with a prompt. Confirm visual recognition, orientation, and spoken/transcribed response with the actual Live model/API key. Test URI grants, canceled camera/gallery, unreadable media, and disconnect during photo preparation on the phone.
 
 ## Authoritative references checked
 

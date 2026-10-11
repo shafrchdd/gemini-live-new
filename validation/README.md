@@ -19,15 +19,23 @@ the verified local tools. Build logs and test bytecode are under `build/`.
 fragmentation, UTF-8, control frames, concurrent writers, handshake validation,
 length limits, malformed frames and cancellation of a blocked socket writer.
 
-`RuntimeTests.java` covers 34 cases: asynchronous APK permission and Companion
+`RuntimeTests.java` covers 49 cases: asynchronous APK permission and Companion
 permission flows, denials and late grants, recorder source fallback, recording
 and effect failures, repeated start/stop, lifecycle cleanup, audio stream
 ordering, queue limits, write watchdog, transcription, tool cancellation,
 playback buffer accounting, blocked AudioTrack writes, PCM arriving during a
-flush, and recovery after a playback write error.
+flush, and recovery after a playback write error. Photo cases cover readiness,
+image/prompt protocol, off-UI preparation, resizing and EXIF transforms, source
+and JPEG limits, encoder/OOM failures, one pending send through network writes,
+source cancellation, replacement sessions, queue rejection, and camera lifecycle.
+
+`python3 tools/validate_aia.py` checks the test project archive, exact embedded
+extension bytes, native/extension block signatures, event/global scopes,
+camera/gallery reconnection flow, and runtime API-key input. Kodular's documented
+ImagePicker event/property differences from MIT are explicitly handled.
 
 These checks establish API compatibility, packaged microphone permission,
 control flow, ordering and resource ownership. They cannot establish hardware
 microphone routing, measured end-to-end latency, current API-key/model access,
-or behavior of a specific Kodular-generated APK. Validate those on a physical
+photo decoding/URI access or behavior of a specific Kodular-generated APK. Validate those on a physical
 Android device using a clean rebuild and first-launch permission grant.

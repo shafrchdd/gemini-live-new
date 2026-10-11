@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a deterministic Kodular test project containing GeminiLive v2.
+"""Generate a deterministic Kodular test project containing GeminiLive v3.
 
 Uses a known Kodular export baseline and canonical component Blockly XML.
 No API key is stored in the project. Extension assets are copied byte-for-byte
@@ -25,7 +25,7 @@ LANGUAGE_VERSION = "29"
 VERSIONS = {
     "Form": "42", "VerticalArrangement": "10", "HorizontalArrangement": "10",
     "Label": "10", "Button": "13", "CheckBox": "6", "Clock": "4",
-    "TextBox": "13", EXTENSION: "2",
+    "TextBox": "13", "Camera": "4", "ImagePicker": "12", "Image": "7", EXTENSION: "3",
 }
 
 
@@ -98,12 +98,21 @@ class ProjectBuilder:
         self.field(b, "VAR", name)
         return b
 
-    def pending(self, value=None):
+    def global_variable(self, name, value=None):
         b = self.block("lexical_variable_get" if value is None else "lexical_variable_set")
-        self.field(b, "VAR", "global micStartPending")
+        self.field(b, "VAR", "global " + name)
         if value is not None:
-            self.value(b, "VALUE", self.boolean(value))
+            self.value(b, "VALUE", value)
         return b
+
+    def pending(self, value=None):
+        return self.global_variable("micStartPending", None if value is None else self.boolean(value))
+
+    def declare_global(self, name, value, x):
+        b = self.block("global_declaration", x=x, y="40")
+        self.field(b, "NAME", name)
+        self.value(b, "VALUE", value)
+        self.xml.append(b)
 
     def prop(self, instance, name, value=None):
         b = self.block("component_set_get")
@@ -169,6 +178,12 @@ class ProjectBuilder:
         self.value(b, "VALUE", text)
         return b
 
+    def trim(self, text):
+        b = self.block("text_trim")
+        self.field(b, "MODE", "BOTH")
+        self.value(b, "TEXT", text)
+        return b
+
     def compare(self, left, operator, right):
         b = self.block("math_compare")
         self.field(b, "OP", operator)
@@ -193,10 +208,25 @@ class ProjectBuilder:
         return [self.enabled("ConnectButton", True), self.enabled("DisconnectButton", False),
                 self.enabled("StartButton", False), self.enabled("StopButton", False),
                 self.enabled("SendButton", False), self.enabled("StopAudioButton", False),
+                self.enabled("SendImageButton", False),
                 self.prop("LevelClock", "TimerEnabled", self.boolean(False)),
                 self.pending(False),
                 self.set_text("MicStatusLabel", "Microphone: stopped"),
                 self.set_text("LevelLabel", "Microphone level: 0 / 100")]
+
+    def photo_controls(self):
+        return [self.conditional(self.method("GeminiLive1", "IsSendingImage"),
+            [self.enabled("SendImageButton", False)],
+            [self.conditional(self.compare(self.length(self.global_variable("imagePath")), "GT", self.number(0)),
+                [self.prop("SendImageButton", "Enabled", self.method("GeminiLive1", "IsReady"))],
+                [self.enabled("SendImageButton", False)])])]
+
+    def selected_photo(self, path):
+        return [self.global_variable("imagePath", path),
+                self.prop("PhotoPreview", "Picture", self.global_variable("imagePath")),
+                self.prop("PhotoPreview", "Visible", self.boolean(True)),
+                self.set_text("ImageStatusLabel", "Photo ready. Connect, enter a prompt, then Send photo."),
+                *self.photo_controls()]
 
     def start_capture(self):
         return [self.set_text("ErrorLabel", ""),
@@ -222,14 +252,22 @@ class ProjectBuilder:
         button = lambda name, text, enabled=True: c(name, "Button", Text=text,
                                                    Enabled="True" if enabled else "False", FontSize="15")
         children = [
-            label("HeadingLabel", "Gemini Live - microphone test", FontSize="22", FontBold="True"),
-            label("InstructionsLabel", "Enter your API key, then Connect. Auto listen waits for SetupComplete. Compare Companion and a freshly built APK.", FontSize="14"),
+            label("HeadingLabel", "Gemini Live v3 - microphone and photo test", FontSize="22", FontBold="True"),
+            label("InstructionsLabel", "For a photo: take or choose it first, uncheck automatic listening, then Connect and Send photo. Opening the camera or gallery disconnects Live; reconnect after returning. Auto listen waits for SetupComplete. Compare Companion and a freshly built APK.", FontSize="14"),
             label("ApiKeyLabel", "API key (not saved)", FontBold="True"),
             c("ApiKeyInput", "TextBox", Text="", InputType="2", Hint="Enter your Gemini API key", Width="-2", FontSize="16"),
             label("ModelLabel", "Live model", FontBold="True"),
             c("ModelInput", "TextBox", Text="gemini-3.8-live", Hint="A Live model available to your key", Width="-2", FontSize="16"),
             label("VoiceLabel", "Prebuilt voice", FontBold="True"),
             c("VoiceInput", "TextBox", Text="Puck", Hint="For example, Puck", Width="-2", FontSize="16"),
+            label("PhotoHeadingLabel", "Photo test - select before Connect", FontBold="True"),
+            c("PhotoRow", "HorizontalArrangement", children=[
+                button("CameraButton", "Take photo"),
+                c("ImagePicker1", "ImagePicker", Text="Choose photo", Enabled="True", FontSize="15")], Width="-2"),
+            c("PhotoPreview", "Image", Picture="", Width="-2", Height="180", ScalePictureToFit="True", Visible="False"),
+            label("ImageStatusLabel", "No photo selected. Take or choose a photo before Connect."),
+            c("PhotoPromptInput", "TextBox", Text="Describe this image briefly.", Hint="Ask Gemini about the photo", MultiLine="True", Width="-2", FontSize="16"),
+            button("SendImageButton", "Send photo", False),
             c("AutoListenCheck", "CheckBox", Text="Start listening automatically when Gemini is ready", Checked="True", Width="-2"),
             c("EchoCheck", "CheckBox", Text="Acoustic echo cancellation (apply on next Start)", Checked="True", Width="-2"),
             c("NoiseCheck", "CheckBox", Text="Noise suppression (apply on next Start)", Checked="True", Width="-2"),
@@ -250,35 +288,33 @@ class ProjectBuilder:
             label("OutputTranscriptLabel", "", FontSize="16"),
             label("TextHeadingLabel", "AI text part", FontBold="True"),
             label("TextReplyLabel", "", FontSize="16"),
-            label("FooterLabel", "No microphone indicator after Start? Read the error above. A level of zero can mean silence, privacy blocking, or another recorder. Stop before changing audio effects; reconnect after returning from the background.", FontSize="13"),
+            label("FooterLabel", "Photos stay selected only while this screen is open; the API key is never saved. No microphone indicator after Start? Read the error above. A level of zero can mean silence, privacy blocking, or another recorder. Stop before changing audio effects; reconnect after returning from the camera, gallery, or background.", FontSize="13"),
         ]
         panel = c("MainPanel", "VerticalArrangement", children=children, Width="-2")
         clock = c("LevelClock", "Clock", TimerInterval="300", TimerEnabled="False", TimerAlwaysFires="False")
+        camera = c("Camera1", "Camera")
         extension = c("GeminiLive1", EXTENSION, Model="gemini-3.8-live", Voice="Puck",
                       RawMessagesEnabled="False", EchoCancellation="True", NoiseSuppression="True",
                       MuteMicWhileSpeaking="False", AudioEnabled="True", Volume="100")
         props = {"$Name": "Screen1", "$Type": "Form", "$Version": VERSIONS["Form"], "Uuid": "0",
-                 "AppName": "Gemini Live Test", "Title": "Gemini Live Test", "Scrollable": "True",
+                 "AppName": "Gemini Live Test v3", "Title": "Gemini Live Test v3", "Scrollable": "True",
                  "Sizing": "Responsive", "BackgroundColor": "&HFFFFFFFF", "ShowListsAsJson": "True",
                  "Theme": "AppTheme.Light.DarkActionBar", "PrimaryColor": "&HFF245A81",
                  "PrimaryColorDark": "&HFF153951", "AccentColor": "&HFF007D77",
-                 "$Components": [panel, clock, extension]}
+                 "$Components": [panel, clock, camera, extension]}
         data = {"authURL": ["creator.kodular.io"], "YaVersion": YA_VERSION, "Source": "Form", "Properties": props}
         return "#|\n$JSON\n" + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n|#\n"
 
     def blocks(self):
-        pending = self.block("global_declaration", x="40", y="40")
-        self.field(pending, "NAME", "micStartPending")
-        self.value(pending, "VALUE", self.boolean(False))
-        self.xml.append(pending)
+        self.declare_global("micStartPending", self.boolean(False), "40")
+        self.declare_global("imagePath", self.literal(""), "950")
         self.event("Screen1", "Initialize", [
             self.prop("GeminiLive1", "RawMessagesEnabled", self.boolean(False)),
             self.prop("GeminiLive1", "AudioEnabled", self.boolean(True)),
             self.prop("GeminiLive1", "Volume", self.number(100)),
+            self.prop("ImagePicker1", "AllowMultipleSelections", self.boolean(False)),
             *self.idle_controls()])
-        key_trim = self.block("text_trim")
-        self.field(key_trim, "MODE", "BOTH")
-        self.value(key_trim, "TEXT", self.prop("ApiKeyInput", "Text"))
+        key_trim = self.trim(self.prop("ApiKeyInput", "Text"))
         self.event("ConnectButton", "Click", [self.conditional(
             self.compare(self.length(self.prop("ApiKeyInput", "Text")), "EQ", self.number(0)),
             [self.set_text("ErrorLabel", "Enter your API key first.")],
@@ -288,6 +324,7 @@ class ProjectBuilder:
              self.enabled("ConnectButton", False), self.enabled("DisconnectButton", True),
              self.enabled("StartButton", False), self.enabled("StopButton", False),
              self.enabled("SendButton", False), self.enabled("StopAudioButton", False),
+             self.enabled("SendImageButton", False),
              self.prop("GeminiLive1", "Model", self.prop("ModelInput", "Text")),
              self.prop("GeminiLive1", "Voice", self.prop("VoiceInput", "Text")),
              self.prop("GeminiLive1", "SystemInstruction", self.literal("You are a helpful voice assistant. Keep replies brief.")),
@@ -297,7 +334,35 @@ class ProjectBuilder:
         self.event("GeminiLive1", "SetupComplete", [
             self.set_text("StatusLabel", "Connection: ready"), self.enabled("StartButton", True),
             self.enabled("SendButton", True), self.enabled("StopAudioButton", True),
+            *self.photo_controls(),
             self.conditional(self.prop("AutoListenCheck", "Checked"), self.start_capture())])
+        self.event("CameraButton", "Click", [
+            self.method("GeminiLive1", "Disconnect"), *self.idle_controls(),
+            self.set_text("StatusLabel", "Connection: disconnected for camera; reconnect after returning"),
+            self.set_text("ErrorLabel", ""),
+            self.set_text("ImageStatusLabel", "Taking a photo. Reconnect after returning."),
+            self.method("Camera1", "TakePicture")])
+        self.event("ImagePicker1", "BeforePicking", [
+            self.method("GeminiLive1", "Disconnect"), *self.idle_controls(),
+            self.set_text("StatusLabel", "Connection: disconnected for gallery; reconnect after returning"),
+            self.set_text("ErrorLabel", ""),
+            self.set_text("ImageStatusLabel", "Choose a photo. Reconnect after choosing or cancelling.")])
+        self.event("Camera1", "AfterPicture", self.selected_photo(self.parameter("image")))
+        self.event("ImagePicker1", "AfterPicking", self.selected_photo(self.prop("ImagePicker1", "Selection")))
+        self.event("SendImageButton", "Click", [self.conditional(self.method("GeminiLive1", "IsReady"),
+            [self.conditional(self.compare(self.length(self.global_variable("imagePath")), "EQ", self.number(0)),
+                [self.set_text("ErrorLabel", "Take or choose a photo before sending.")],
+                [self.conditional(self.compare(self.length(self.trim(self.prop("PhotoPromptInput", "Text"))), "EQ", self.number(0)),
+                    [self.set_text("ErrorLabel", "Enter a photo prompt first.")],
+                    [self.set_text("ErrorLabel", ""), self.set_text("OutputTranscriptLabel", ""),
+                     self.set_text("TextReplyLabel", ""), self.enabled("SendImageButton", False),
+                     self.set_text("ImageStatusLabel", "Preparing and sending photo..."),
+                     self.method("Screen1", "HideKeyboard"),
+                     self.method("GeminiLive1", "SendImage", self.global_variable("imagePath"),
+                                 self.trim(self.prop("PhotoPromptInput", "Text")))])])],
+            [self.set_text("ErrorLabel", "Connect and wait for SetupComplete before sending a photo.")])])
+        self.event("GeminiLive1", "ImageSent", [
+            self.set_text("ImageStatusLabel", "Photo sent. Waiting for Gemini..."), *self.photo_controls()])
         self.event("StartButton", "Click", [self.conditional(self.method("GeminiLive1", "IsReady"),
                    self.start_capture(), [self.set_text("ErrorLabel", "Connect and wait for SetupComplete first.")])])
         self.event("StopButton", "Click", [self.method("GeminiLive1", "StopListening"),
@@ -340,10 +405,11 @@ class ProjectBuilder:
                     self.conditional(self.negate(self.method("GeminiLive1", "IsListening")), [
                         self.conditional(self.pending(), [
                             self.conditional(self.compare(microphone_prefix, "EQ", self.number(1)), self.failed_capture())],
-                            self.failed_capture())])])])])
+                            self.failed_capture())])])]),
+            *self.photo_controls()])
         self.event("Screen1", "PermissionDenied", [
             self.prop("ErrorLabel", "Text", self.join(self.literal("Permission denied: "), self.parameter("permissionName"),
-                                                       self.literal(". Allow microphone access for this installed APK in Android settings.")))])
+                                                       self.literal(". Allow this permission for the installed app in Android settings, then retry.")))])
         self.event("Screen1", "ErrorOccurred", [
             self.prop("ErrorLabel", "Text", self.join(self.parameter("functionName"), self.literal(": "), self.parameter("message")))])
         self.event("GeminiLive1", "InputTranscription", self.append_transcript("InputTranscriptLabel", "text"))
@@ -364,8 +430,8 @@ def main():
     bky = builder.blocks()
     properties = "\n".join([
         "main=" + PACKAGE + ".Screen1", "name=" + PROJECT, "assets=../assets", "source=../src",
-        "build=../build", "icon=", "versioncode=1", "versionname=1.0", "useslocation=False",
-        "aname=Gemini Live Test", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
+        "build=../build", "icon=", "versioncode=3", "versionname=3.0", "useslocation=False",
+        "aname=Gemini Live Test v3", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
         "showlistsasjson=True", "theme=AppTheme.Light.DarkActionBar", "color.primary=&HFF245A81",
         "color.primary.dark=&HFF153951", "color.accent=&HFF007D77", "",
     ])

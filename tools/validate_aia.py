@@ -21,7 +21,8 @@ EXTENSION = "com.fabiyon.geminilive.GeminiLive"
 # Form/YA/language baseline comes from the official Kodular Pollfish export;
 # active native versions come from current Kodular component documentation.
 KODULAR_VERSIONS = {"Form": "42", "VerticalArrangement": "10", "HorizontalArrangement": "10",
-                    "Label": "10", "Button": "13", "CheckBox": "6", "Clock": "4", "TextBox": "13"}
+                    "Label": "10", "Button": "13", "CheckBox": "6", "Clock": "4", "TextBox": "13",
+                    "Camera": "4", "ImagePicker": "12", "Image": "7"}
 
 
 def require(condition, message):
@@ -187,6 +188,11 @@ class RuntimeMetadata:
                         result[kind].setdefault(name, method)
             path = data["super"]
         require(any(result.values()), "Unknown standard component type: " + type_)
+        if type_ == "ImagePicker":
+            # Kodular differs from MIT's zero-argument event; official current docs:
+            # https://docs.kodular.io/components/Media/Image_Picker/#after-picking
+            result["events"]["AfterPicking"] = {"arity": 1, "params": ["selection"]}
+            result["properties"]["AllowMultipleSelections"] = {"get", "set"}
         return result
 
 
@@ -322,6 +328,7 @@ def main():
             require(name and type_, "Designer component has no name/type")
             require(name not in components, "Duplicate component instance: " + name)
             require(type_ != "PasswordTextBox", "Deprecated Kodular PasswordTextBox blocks APK builds")
+            require(type_ != "Camera" or "UseFront" not in component, "Deprecated Camera.UseFront must be omitted")
             external = type_ in (EXTENSION, info["name"])
             metadata = extension_metadata(info) if external else runtime.read(type_)
             require(str(component.get("$Version", "")).isdigit(), "Missing/invalid Designer component version")
@@ -364,8 +371,9 @@ def main():
         require(all(name and re.fullmatch(r"[A-Za-z_][A-Za-z_0-9]*", name) for name in global_names), "Invalid global variable declaration")
         require(len(global_names) == len(set(global_names)), "Duplicate global variable declaration")
         globals_ = set(global_names)
-        require(globals_ == {"micStartPending"}, "Expected microphone start-pending state global")
-        initial_value = child(declarations[0], "value")
+        require("micStartPending" in globals_, "Expected microphone start-pending state global")
+        microphone_declaration = next(block for block in declarations if fields(block).get("NAME") == "micStartPending")
+        initial_value = child(microphone_declaration, "value")
         initial_block = None if initial_value is None else child(initial_value, "block")
         require(initial_block is not None and initial_block.get("type") == "logic_boolean"
                 and fields(initial_block).get("BOOL") == "FALSE",
@@ -442,11 +450,29 @@ def main():
         required_events |= {(name, "Click") for name, data in components.items() if data["type"] == "Button"}
         required_events.add(("LevelClock", "Timer"))
         required_events.add(("MuteCheck", "Changed"))
+        if int(info["version"]) >= 3:
+            cameras = [name for name, item in components.items() if item["type"] == "Camera"]
+            pickers = [name for name, item in components.items() if item["type"] == "ImagePicker"]
+            previews = [name for name, item in components.items() if item["type"] == "Image"]
+            require(cameras and pickers and previews, "Image-enabled extension project must provide camera, gallery and preview")
+            required_events |= {(name, "AfterPicture") for name in cameras}
+            required_events |= {(name, "AfterPicking") for name in pickers}
+            required_events.add(("GeminiLive1", "ImageSent"))
         require(required_events.issubset(events), "Required handlers missing: " + str(sorted(required_events - events.keys())))
 
         def methods(block):
             return [(child(item, "mutation").get("instance_name"), child(item, "mutation").get("method_name"))
                     for item in descendants(block, "component_method")]
+
+        if int(info["version"]) >= 3:
+            require(("GeminiLive1", "SendImage") in methods(events["SendImageButton", "Click"]), "Photo send button is not wired")
+            for name in cameras:
+                require(("GeminiLive1", "SendImage") not in methods(events[name, "AfterPicture"]), "Camera callback must wait for reconnect and readiness")
+            for name in pickers:
+                require((name, "BeforePicking") in events, "Gallery must handle disconnect before external activity")
+                require(("GeminiLive1", "Disconnect") in methods(events[name, "BeforePicking"]), "Gallery activity must reset connection")
+                require(("GeminiLive1", "SendImage") not in methods(events[name, "AfterPicking"]), "Gallery callback must wait for reconnect and readiness")
+            require(("GeminiLive1", "Disconnect") in methods(events["CameraButton", "Click"]), "Camera activity must reset connection")
 
         require(("GeminiLive1", "Connect") in methods(events["ConnectButton", "Click"]), "Connect button is not wired")
         require(("GeminiLive1", "StartListening") not in methods(events["ConnectButton", "Click"]),

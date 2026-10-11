@@ -1,10 +1,14 @@
 package com.fabiyon.geminilive;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 import android.media.MediaRecorder;
+import android.media.ExifInterface;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.NoiseSuppressor;
 import android.os.Handler;
@@ -14,6 +18,7 @@ import com.google.appinventor.components.annotations.*;
 import com.google.appinventor.components.common.ComponentCategory;
 import com.google.appinventor.components.runtime.*;
 import com.google.appinventor.components.runtime.util.YailList;
+import com.google.appinventor.components.runtime.util.MediaUtil;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -26,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@DesignerComponent(version=2, description="Direct Gemini Live client with foreground microphone streaming, safe session cleanup, and bounded audio queues.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
+@DesignerComponent(version=3, description="Direct Gemini Live client with microphone streaming, photo and text input, safe session cleanup, and bounded media queues.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.INTERNET,android.permission.RECORD_AUDIO")
 public class GeminiLive extends AndroidNonvisibleComponent implements OnStopListener, OnDestroyListener, Deleteable {
@@ -42,6 +47,8 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
       new ArrayBlockingQueue<Runnable>(2), threadFactory("GeminiLive-microphone"));
   private final ThreadPoolExecutor catalogWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
       new ArrayBlockingQueue<Runnable>(4), threadFactory("GeminiLive-catalog"));
+  private final ThreadPoolExecutor imageWorker = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+      new ArrayBlockingQueue<Runnable>(1), threadFactory("GeminiLive-image"));
   private final ScheduledExecutorService watchdog = Executors.newSingleThreadScheduledExecutor(threadFactory("GeminiLive-watchdog"));
   private volatile Session session;
   private volatile MicRun microphone;
@@ -146,6 +153,8 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   @SimpleFunction public boolean IsNoiseSuppressionAvailable() { return NoiseSuppressor.isAvailable(); }
   @SimpleFunction public boolean IsConnected() { Session s = session; return current(s) && s.connected; }
   @SimpleFunction public boolean IsReady() { return ready(session); }
+  @SimpleFunction(description="Whether a photo is being prepared or sent in the current session.")
+  public boolean IsSendingImage() { Session s = session; return ready(s) && s.imagePending.get(); }
   @SimpleFunction public boolean IsListening() {
     MicRun mic = microphone;
     return mic != null && mic.started && !mic.cancelled && ready(mic.owner);
@@ -229,6 +238,292 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
       JSONObject turn = new JSONObject().put("role", "user").put("parts", new JSONArray().put(new JSONObject().put("text", text)));
       send(s, new JSONObject().put("clientContent", new JSONObject().put("turns", new JSONArray().put(turn)).put("turnComplete", true)).toString(), false);
     } catch (Exception e) { Error("SendText: " + detail(e, s.key)); }
+  }
+
+  @SimpleFunction(description="Send a camera/picker photo or local image with a text prompt after SetupComplete. Accepts assets, accessible local paths, file URIs and granted content URIs. Resizes to JPEG up to 1024 pixels, off the UI thread. One image can be pending at a time. ImageSent confirms network writes, not model acknowledgment.")
+  public void SendImage(final String imagePath, final String text) {
+    final Session owner = session;
+    if (!ready(owner)) { Error("Gemini is not ready. Wait for SetupComplete."); return; }
+    if (imagePath == null || imagePath.trim().isEmpty()) { Error("SendImage: Select or capture an image first."); return; }
+    if (text == null || text.trim().isEmpty()) { Error("SendImage: Enter a text prompt for the image."); return; }
+    if (text.length() > 16384) { Error("SendImage: The prompt exceeds 16384 characters."); return; }
+    final long generation;
+    synchronized (stateLock) {
+      if (!ready(owner)) return;
+      if (!owner.imagePending.compareAndSet(false, true)) { Error("SendImage: An image is already being prepared or sent."); return; }
+      generation = ++owner.imageGeneration;
+    }
+    try {
+      Future<?> task = imageWorker.submit(new Runnable() {
+        public void run() { prepareAndSendImage(owner, generation, imagePath, text); }
+      });
+      synchronized (stateLock) {
+        if (ready(owner) && owner.imageGeneration == generation && owner.imagePending.get()) owner.imageFuture = task;
+        else task.cancel(true);
+      }
+    } catch (RejectedExecutionException e) {
+      finishImage(owner, generation);
+      if (current(owner)) Error("SendImage: The image worker is busy. Please retry.");
+    }
+  }
+
+  private void prepareAndSendImage(final Session owner, final long generation, final String path, final String text) {
+    boolean queued = false;
+    String failure = null;
+    try {
+      if (!ready(owner) || Thread.currentThread().isInterrupted()) return;
+      byte[] jpeg = prepareImage(path, owner);
+      if (!ready(owner) || Thread.currentThread().isInterrupted()) return;
+      JSONObject video = new JSONObject().put("mimeType", "image/jpeg").put("data", Base64.encodeToString(jpeg, Base64.NO_WRAP));
+      final String imagePayload = new JSONObject().put("realtimeInput", new JSONObject().put("video", video)).toString();
+      final String textPayload = new JSONObject().put("realtimeInput", new JSONObject().put("text", text)).toString();
+      owner.writer.execute(new Runnable() {
+        public void run() {
+          String writeFailure = null;
+          boolean written = false;
+          try {
+            if (!ready(owner)) return;
+            // Keep the frame and its prompt consecutive on the shared writer.
+            writeNow(owner, imagePayload);
+            if (!ready(owner)) return;
+            writeNow(owner, textPayload);
+            written = true;
+          } catch (Exception e) { writeFailure = detail(e, owner.key); }
+          finally { finishImage(owner, generation); }
+          if (written) post(owner, new Runnable() { public void run() { ImageSent(path); } });
+          if (writeFailure != null && current(owner)) {
+            Error("SendImage: " + writeFailure);
+            closeSession(owner, "Image send failed");
+          }
+        }
+      });
+      queued = true;
+    } catch (RejectedExecutionException e) { failure = "Outgoing queue is full. Please retry the image."; }
+    catch (OutOfMemoryError e) { failure = "Not enough memory to prepare this image. Use a smaller photo."; }
+    catch (Exception e) { failure = detail(e, owner.key); }
+    finally { if (!queued) finishImage(owner, generation); }
+    if (failure != null && current(owner)) Error("SendImage: " + failure);
+  }
+
+  private static final int IMAGE_SOURCE_LIMIT = 20 * 1024 * 1024;
+  private static final int IMAGE_JPEG_LIMIT = 512 * 1024;
+  private static final int IMAGE_DECODE_DIMENSION = 2048;
+  private static final int IMAGE_SEND_DIMENSION = 1024;
+
+  /** Called by the image worker; never decode a full-resolution photo or load its source into heap. */
+  private byte[] prepareImage(String imagePath, Session owner) throws java.io.IOException {
+    if (imagePath == null || imagePath.trim().length() == 0) throw new java.io.IOException("Image path is empty.");
+    String path = imagePath.trim();
+    int colon = path.indexOf(':');
+    String scheme = colon > 0 && path.substring(0, colon).matches("[A-Za-z][A-Za-z0-9+.-]*")
+        ? path.substring(0, colon) : null;
+    if (scheme != null && !"file".equalsIgnoreCase(scheme) && !"content".equalsIgnoreCase(scheme)) {
+      throw new java.io.IOException("Choose an asset, local file, or content URI; remote URLs and data URIs are not supported.");
+    }
+    if (scheme != null) path = scheme.toLowerCase(java.util.Locale.US) + path.substring(scheme.length());
+    checkImageOwner(owner);
+    java.io.File temporary = java.io.File.createTempFile("gemini-live-image-", ".tmp", form.getCacheDir());
+    android.graphics.Bitmap bitmap = null;
+    try {
+      spoolImage(path, temporary, owner);
+      checkImageOwner(owner);
+      android.graphics.BitmapFactory.Options bounds = new android.graphics.BitmapFactory.Options();
+      bounds.inJustDecodeBounds = true;
+      android.graphics.BitmapFactory.decodeFile(temporary.getAbsolutePath(), bounds);
+      if (bounds.outWidth <= 0 || bounds.outHeight <= 0) throw new java.io.IOException("Image format could not be decoded.");
+      int sample = 1;
+      while (((long) bounds.outWidth + sample - 1) / sample > IMAGE_DECODE_DIMENSION
+          || ((long) bounds.outHeight + sample - 1) / sample > IMAGE_DECODE_DIMENSION) {
+        sample *= 2;
+      }
+      int orientation = readImageOrientation(temporary.getAbsolutePath());
+      checkImageOwner(owner);
+      android.graphics.BitmapFactory.Options options = new android.graphics.BitmapFactory.Options();
+      options.inSampleSize = sample;
+      options.inScaled = false;
+      options.inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888;
+      bitmap = android.graphics.BitmapFactory.decodeFile(temporary.getAbsolutePath(), options);
+      if (bitmap == null) throw new java.io.IOException("Image format could not be decoded.");
+      if (bitmap.getWidth() <= 0 || bitmap.getHeight() <= 0
+          || bitmap.getWidth() > IMAGE_DECODE_DIMENSION || bitmap.getHeight() > IMAGE_DECODE_DIMENSION) {
+        throw new java.io.IOException("Image decoder returned invalid or unexpectedly large dimensions.");
+      }
+      checkImageOwner(owner);
+      if (bitmap.getWidth() > IMAGE_SEND_DIMENSION || bitmap.getHeight() > IMAGE_SEND_DIMENSION) {
+        float ratio = Math.min((float) IMAGE_SEND_DIMENSION / bitmap.getWidth(),
+            (float) IMAGE_SEND_DIMENSION / bitmap.getHeight());
+        int width = Math.max(1, Math.min(IMAGE_SEND_DIMENSION, Math.round(bitmap.getWidth() * ratio)));
+        int height = Math.max(1, Math.min(IMAGE_SEND_DIMENSION, Math.round(bitmap.getHeight() * ratio)));
+        android.graphics.Bitmap scaled = android.graphics.Bitmap.createScaledBitmap(bitmap, width, height, true);
+        if (scaled != bitmap) {
+          android.graphics.Bitmap original = bitmap;
+          bitmap = scaled;
+          original.recycle();
+        }
+      }
+      checkImageOwner(owner);
+      if (orientation != android.media.ExifInterface.ORIENTATION_NORMAL) {
+        android.graphics.Matrix matrix = imageOrientationMatrix(orientation);
+        if (matrix != null) {
+          android.graphics.Bitmap oriented = android.graphics.Bitmap.createBitmap(bitmap, 0, 0,
+              bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+          if (oriented != bitmap) {
+            android.graphics.Bitmap original = bitmap;
+            bitmap = oriented;
+            original.recycle();
+          }
+        }
+      }
+      int[] qualities = new int[] {80, 60, 40};
+      for (int quality : qualities) {
+        checkImageOwner(owner);
+        ImageByteBuffer jpeg = new ImageByteBuffer(IMAGE_JPEG_LIMIT);
+        boolean success;
+        try {
+          success = encodeImageJpeg(bitmap, quality, jpeg);
+        } catch (java.io.IOException failure) {
+          if (!jpeg.limitExceeded) throw failure;
+          success = false;
+        }
+        if (success && !jpeg.limitExceeded) {
+          checkImageOwner(owner);
+          if (jpeg.size() == 0) throw new java.io.IOException("Image JPEG encoding returned no data.");
+          return jpeg.toByteArray();
+        }
+        if (!jpeg.limitExceeded) throw new java.io.IOException("Image JPEG encoding failed.");
+      }
+      throw new java.io.IOException("Image remains larger than 512 KiB after JPEG compression. Choose a simpler or smaller image.");
+    } finally {
+      if (bitmap != null && !bitmap.isRecycled()) bitmap.recycle();
+      // The file is app-private and no longer needed on success, cancellation, or failure.
+      temporary.delete();
+    }
+  }
+
+  private void checkImageOwner(Session owner) throws java.io.InterruptedIOException {
+    if (Thread.currentThread().isInterrupted() || !ready(owner)) {
+      throw new java.io.InterruptedIOException("Image preparation was cancelled.");
+    }
+  }
+
+  private void spoolImage(String path, java.io.File temporary, Session owner) throws java.io.IOException {
+    java.io.InputStream source = null;
+    java.io.OutputStream destination = null;
+    try {
+      checkImageOwner(owner);
+      source = com.google.appinventor.components.runtime.util.MediaUtil.openMedia(form, path);
+      if (source == null) throw new java.io.IOException("Image source could not be opened.");
+      synchronized (stateLock) {
+        checkImageOwner(owner);
+        owner.imageInput = source;
+      }
+      destination = new java.io.FileOutputStream(temporary);
+      byte[] block = new byte[8192];
+      int total = 0;
+      for (;;) {
+        checkImageOwner(owner);
+        int count = source.read(block);
+        if (count < 0) break;
+        if (count == 0) {
+          int next = source.read();
+          if (next < 0) break;
+          block[0] = (byte) next;
+          count = 1;
+        }
+        if (count > IMAGE_SOURCE_LIMIT - total) throw new java.io.IOException("Image source exceeds the 20 MiB limit.");
+        destination.write(block, 0, count);
+        total += count;
+      }
+      if (total == 0) throw new java.io.IOException("Image source is empty.");
+    } finally {
+      synchronized (stateLock) {
+        if (owner.imageInput == source) owner.imageInput = null;
+      }
+      try {
+        if (destination != null) destination.close();
+      } finally {
+        if (source != null) {
+          try { source.close(); } catch (java.io.IOException ignored) { /* Read is finished; no further source access is possible. */ }
+        }
+      }
+    }
+  }
+
+  private static int readImageOrientation(String path) {
+    try {
+      int value = new android.media.ExifInterface(path).getAttributeInt(
+          android.media.ExifInterface.TAG_ORIENTATION, android.media.ExifInterface.ORIENTATION_NORMAL);
+      return value >= 1 && value <= 8 ? value : android.media.ExifInterface.ORIENTATION_NORMAL;
+    } catch (java.io.IOException ignored) {
+      // Formats without EXIF can still be valid images; their pixels use normal orientation.
+      return android.media.ExifInterface.ORIENTATION_NORMAL;
+    }
+  }
+
+  private static android.graphics.Matrix imageOrientationMatrix(int orientation) {
+    android.graphics.Matrix matrix = new android.graphics.Matrix();
+    switch (orientation) {
+      case android.media.ExifInterface.ORIENTATION_FLIP_HORIZONTAL: matrix.setScale(-1, 1); break;
+      case android.media.ExifInterface.ORIENTATION_ROTATE_180: matrix.setRotate(180); break;
+      case android.media.ExifInterface.ORIENTATION_FLIP_VERTICAL: matrix.setScale(1, -1); break;
+      case android.media.ExifInterface.ORIENTATION_TRANSPOSE: matrix.setRotate(90); matrix.postScale(-1, 1); break;
+      case android.media.ExifInterface.ORIENTATION_ROTATE_90: matrix.setRotate(90); break;
+      case android.media.ExifInterface.ORIENTATION_TRANSVERSE: matrix.setRotate(270); matrix.postScale(-1, 1); break;
+      case android.media.ExifInterface.ORIENTATION_ROTATE_270: matrix.setRotate(270); break;
+      default: return null;
+    }
+    return matrix;
+  }
+
+  private static boolean encodeImageJpeg(android.graphics.Bitmap bitmap, int quality, ImageByteBuffer output)
+      throws java.io.IOException {
+    // Android's native encoder can propagate an IOException thrown by OutputStream.write.
+    return bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, quality, output);
+  }
+
+  /** Unlike ByteArrayOutputStream, allocation itself never grows beyond the JPEG byte budget. */
+  private static final class ImageByteBuffer extends java.io.OutputStream {
+    private final int limit;
+    private byte[] bytes;
+    private int count;
+    boolean limitExceeded;
+    ImageByteBuffer(int limit) { this.limit = limit; bytes = new byte[Math.min(8192, limit)]; }
+    public void write(int value) throws java.io.IOException {
+      reserve(1);
+      bytes[count++] = (byte) value;
+    }
+    public void write(byte[] source, int offset, int length) throws java.io.IOException {
+      if (source == null) throw new NullPointerException();
+      if (offset < 0 || length < 0 || offset > source.length - length) throw new IndexOutOfBoundsException();
+      reserve(length);
+      System.arraycopy(source, offset, bytes, count, length);
+      count += length;
+    }
+    private void reserve(int length) throws java.io.IOException {
+      if (length > limit - count) {
+        limitExceeded = true;
+        throw new java.io.IOException("Encoded JPEG exceeds the byte budget.");
+      }
+      if (count + length > bytes.length) {
+        int capacity = Math.min(limit, Math.max(count + length, bytes.length * 2));
+        byte[] replacement = new byte[capacity];
+        System.arraycopy(bytes, 0, replacement, 0, count);
+        bytes = replacement;
+      }
+    }
+    int size() { return count; }
+    byte[] toByteArray() {
+      if (count == bytes.length) return bytes;
+      byte[] result = new byte[count];
+      System.arraycopy(bytes, 0, result, 0, count);
+      return result;
+    }
+  }
+
+  private void finishImage(Session owner, long generation) {
+    synchronized (stateLock) {
+      if (owner.imageGeneration == generation) { owner.imagePending.set(false); owner.imageFuture = null; }
+    }
   }
 
   @SimpleFunction(description="Return a function result to the current session. Cancelled or already answered call IDs are rejected.")
@@ -341,6 +636,8 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   @SimpleEvent public void SetupComplete() { EventDispatcher.dispatchEvent(this, "SetupComplete"); }
   @SimpleEvent public void RawMessage(String message) { EventDispatcher.dispatchEvent(this, "RawMessage", message); }
   @SimpleEvent public void TextReceived(String text) { EventDispatcher.dispatchEvent(this, "TextReceived", text); }
+  @SimpleEvent(description="The image frame and its text prompt were written to the current connection. This is not server acknowledgment.")
+  public void ImageSent(String imagePath) { EventDispatcher.dispatchEvent(this, "ImageSent", imagePath); }
   @SimpleEvent public void Disconnected(String reason) { EventDispatcher.dispatchEvent(this, "Disconnected", reason); }
   @SimpleEvent public void Error(final String message) {
     ui.post(new Runnable() { public void run() { if (!destroyed) EventDispatcher.dispatchEvent(GeminiLive.this, "Error", message); } });
@@ -354,6 +651,7 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     Disconnect();
     microphoneWorker.shutdownNow();
     catalogWorker.shutdownNow();
+    imageWorker.shutdownNow();
     watchdog.shutdownNow();
     ui.removeCallbacksAndMessages(null);
   }
@@ -397,6 +695,10 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     final Transport transport = new Transport();
     final AtomicBoolean closed = new AtomicBoolean();
     final AtomicInteger pendingAudio = new AtomicInteger();
+    final AtomicBoolean imagePending = new AtomicBoolean();
+    long imageGeneration;
+    Future<?> imageFuture;
+    InputStream imageInput;
     final ConcurrentHashMap<String, PendingCall> calls = new ConcurrentHashMap<String, PendingCall>();
     final ThreadPoolExecutor writer = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
         new ArrayBlockingQueue<Runnable>(32), threadFactory("GeminiLive-writer"));
@@ -448,6 +750,14 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     s.writer.shutdownNow();
     s.calls.clear();
     synchronized (stateLock) {
+      if (s.imageFuture != null) { s.imageFuture.cancel(true); s.imageFuture = null; }
+      s.imagePending.set(false);
+      final InputStream imageInput = s.imageInput;
+      s.imageInput = null;
+      if (imageInput != null) threadFactory("GeminiLive-image-cancel").newThread(new Runnable() {
+        public void run() { try { imageInput.close(); } catch (IOException ignored) {} }
+      }).start();
+      imageWorker.purge();
       if (session == s) { session = null; stopMicLocked(); }
       else if (microphone != null && microphone.owner == s) microphone.cancel();
     }

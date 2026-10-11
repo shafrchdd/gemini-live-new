@@ -2,7 +2,19 @@
 
 [Download GeminiLiveTest.aia](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia)
 
-In Kodular Creator, use **Projects → Import project (.aia) from my computer**, then select this file. It includes the compiled GeminiLive version 2 extension and the complete screen/blocks; you do not need to import the `.aix` separately.
+In Kodular Creator, use **Projects → Import project (.aia) from my computer**, then select this file. It includes the compiled GeminiLive version 3 extension and the complete screen/blocks; you do not need to import the `.aix` separately.
+
+To test an image with a prompt:
+
+1. Enter your API key, then tap **Take photo** or **Choose photo** and allow the camera/gallery permissions when requested.
+2. Check the preview. Capture/selection happens before connecting: opening the native camera/gallery disconnects the previous Live session, even if you cancel.
+3. Uncheck **Start listening automatically** for a photo-only test. Enter a question in the photo prompt, for example “What objects are in this image?”
+4. Tap **Connect**, wait for **Connection: ready**, then tap **Send photo**.
+5. Read **AI speech transcript** and listen to the response. **Photo sent** confirms network transmission; errors appear in the error label.
+
+You can send another question with the same photo after its previous send finishes. To change the photo, capture/select again and reconnect. This project sends camera snapshots or selected images, rather than a continuous camera stream. Returned paths/URIs are retained only in memory; the native camera or picker may save a photo on the device.
+
+For microphone and text tests:
 
 1. Open the project in Companion or export and install a fresh APK.
 2. Enter your Gemini API key in the app's masked input. The project contains no key and does not save the value to storage.

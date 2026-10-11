@@ -4,6 +4,10 @@ import android.media.MediaRecorder;
 import android.media.audiofx.AcousticEchoCanceler;
 import android.media.audiofx.NoiseSuppressor;
 import android.os.Handler;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.ExifInterface;
+import com.google.appinventor.components.runtime.util.MediaUtil;
 import com.fabiyon.geminilive.GeminiLive;
 import com.google.appinventor.components.runtime.*;
 import java.io.*;
@@ -31,6 +35,8 @@ public final class RuntimeTests {
     final Capture output = new Capture();
     Fixture(boolean permission, boolean ready) throws Exception {
       AudioRecord.reset(); AudioTrack.reset(); EventDispatcher.reset();
+      Bitmap.reset(); BitmapFactory.reset(); MediaUtil.reset();
+      ExifInterface.orientation = ExifInterface.ORIENTATION_NORMAL; ExifInterface.fails = false;
       AcousticEchoCanceler.created.set(0); AcousticEchoCanceler.released.set(0);
       NoiseSuppressor.created.set(0); NoiseSuppressor.released.set(0);
       AcousticEchoCanceler.fail = false; NoiseSuppressor.fail = false;
@@ -61,11 +67,24 @@ public final class RuntimeTests {
       final ThreadPoolExecutor writer = (ThreadPoolExecutor) get(session, "writer");
       await(new Condition() { public boolean met() { return writer.isShutdown() || (writer.getQueue().isEmpty() && writer.getActiveCount() == 0); } });
     }
+    void awaitImage() throws Exception {
+      final ThreadPoolExecutor worker = (ThreadPoolExecutor)get(extension, "imageWorker");
+      await(new Condition() { public boolean met() { return !extension.IsSendingImage() && worker.getQueue().isEmpty() && worker.getActiveCount() == 0; } });
+      awaitWrites(); Handler.awaitIdle();
+    }
     void inbound(String payload) throws Exception { invoke(extension, "handleMessage", new Class<?>[] {SESSION, String.class}, session, payload); }
     void startPlayback() throws Exception { invoke(get(session, "playback"), "start", new Class<?>[0]); }
     void offerPcm(int bytes) throws Exception { invoke(get(session, "playback"), "offer", new Class<?>[] {byte[].class, int.class}, new byte[bytes], 24000); }
     public void close() throws Exception {
       extension.onDestroy(); awaitStopped();
+      final ThreadPoolExecutor worker = (ThreadPoolExecutor)get(extension, "imageWorker");
+      await(new Condition() { public boolean met() { return worker.isTerminated(); } });
+      check(Bitmap.created.get() == Bitmap.recycled.get(), "Every image bitmap must be recycled");
+      check(MediaUtil.opened.get() == MediaUtil.closed.get(), "Every image stream must be closed");
+      if (form.imageCacheDir != null) {
+        equal(0, form.imageCacheDir.list().length);
+        check(form.imageCacheDir.delete(), "Image test cache cleanup failed");
+      }
       check(AudioRecord.created.get() == AudioRecord.released.get(), "Every recorder must be released");
       check(AcousticEchoCanceler.created.get() == AcousticEchoCanceler.released.get(), "Every echo canceller must be released");
       check(NoiseSuppressor.created.get() == NoiseSuppressor.released.get(), "Every noise suppressor must be released");
@@ -318,8 +337,153 @@ public final class RuntimeTests {
         await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 320; } }); equal(2, AudioTrack.created.get());
       }
     }});
+    imageTests();
     System.out.println("Runtime tests: " + passed + " passed, " + failed + " failed");
     if (failed != 0) throw new AssertionError("Runtime validation failed");
+  }
+
+  private static void imageTests() throws Exception {
+    test("image requires setup before opening media", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, false)) { f.extension.SendImage("content://photo/1", "Describe"); Handler.awaitIdle(); equal(0, MediaUtil.opened.get()); equal(1, EventDispatcher.count("Error")); }
+    }});
+    test("image validation rejects absent paths and prompts without reserving worker", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.SendImage("", "Describe"); f.extension.SendImage("photo.jpg", " ");
+        f.extension.SendImage("photo.jpg", new String(new char[16385]).replace('\0', 'x'));
+        Handler.awaitIdle(); equal(3, EventDispatcher.count("Error")); equal(0, MediaUtil.opened.get()); check(!f.extension.IsSendingImage(), "Invalid image reserved worker");
+      }
+    }});
+    test("photo and prompt use consecutive native realtime frames off UI", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        Handler.runSync(new Runnable() { public void run() { f.extension.SendImage("content://photo/1", "What is here?"); } }); f.awaitImage();
+        List<JSONObject> frames = messages(f.output.snapshot()); equal(2, frames.size());
+        JSONObject video = frames.get(0).getJSONObject("realtimeInput").getJSONObject("video");
+        check(video.getString("mimeType").equals("image/jpeg"), "Wrong image MIME");
+        equal(1024, java.util.Base64.getDecoder().decode(video.getString("data")).length);
+        check(frames.get(1).getJSONObject("realtimeInput").getString("text").equals("What is here?"), "Prompt lost or sent before frame");
+        equal(2, BitmapFactory.sampleSize); equal(1024, Bitmap.compressedWidth); equal(768, Bitmap.compressedHeight);
+        equal(1, EventDispatcher.count("ImageSent")); check(!f.extension.IsSendingImage(), "Reservation not released");
+        check(Bitmap.compressionThreads.get(0).equals("GeminiLive-image"), "Image encoded on UI thread"); assertUiEvents();
+      }
+    }});
+    test("remote and data image URIs are rejected without opening network", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        for (String path : Arrays.asList("https://example.com/image.jpg", "data:image/jpeg;base64,AA==", "ftp://host/image")) {
+          f.extension.SendImage(path, "Describe"); f.awaitImage();
+        }
+        equal(0, MediaUtil.opened.get()); equal(3, EventDispatcher.count("Error")); equal(0, f.output.snapshot().length);
+      }
+    }});
+    test("empty, unreadable and corrupt images fail with cleanup and allow retry", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        MediaUtil.data = new byte[0]; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        MediaUtil.data = new byte[128]; MediaUtil.readFails = true; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        MediaUtil.readFails = false; BitmapFactory.badBounds = true; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        BitmapFactory.badBounds = false; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        equal(3, EventDispatcher.count("Error")); equal(1, EventDispatcher.count("ImageSent"));
+      }
+    }});
+    test("oversize source is rejected before bitmap allocation", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        MediaUtil.data = new byte[20 * 1024 * 1024 + 1]; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        check(errorContains("20 MiB"), "Missing source size diagnostic"); equal(0, Bitmap.created.get()); equal(0, f.output.snapshot().length);
+      }
+    }});
+    test("EXIF rotation preserves camera portrait orientation", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        ExifInterface.orientation = ExifInterface.ORIENTATION_ROTATE_90; f.extension.SendImage("camera.jpg", "Describe"); f.awaitImage();
+        equal(768, Bitmap.compressedWidth); equal(1024, Bitmap.compressedHeight);
+        equal(Bitmap.created.get(), Bitmap.recycled.get());
+        for (int orientation = 2; orientation <= 8; orientation++) {
+          Object matrix = invoke(f.extension, "imageOrientationMatrix", new Class<?>[] {int.class}, orientation);
+          check(matrix != null, "Missing EXIF orientation " + orientation);
+          android.graphics.Matrix transform = (android.graphics.Matrix)matrix;
+          if (orientation == 2 || orientation == 5 || orientation == 7) check(transform.scaleX == -1, "Missing EXIF reflection");
+          if (orientation == 4) check(transform.scaleY == -1, "Missing vertical reflection");
+        }
+      }
+    }});
+    test("JPEG budget retries lower quality and rejects persistent oversized output", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        Bitmap.jpegBytesByQuality = new int[] {600000, 300000, 100000}; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        check(Bitmap.qualities.equals(Arrays.asList(80, 60)), "Missing lower-quality retry"); equal(1, EventDispatcher.count("ImageSent"));
+        Bitmap.jpegBytesByQuality = new int[] {600000, 600000, 600000}; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        check(errorContains("512 KiB"), "Missing JPEG budget diagnostic"); equal(1, EventDispatcher.count("ImageSent"));
+      }
+    }});
+    test("image OOM and encoder failure release resources and reservation", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        BitmapFactory.outOfMemory = true; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        check(errorContains("Not enough memory"), "OOM not surfaced"); BitmapFactory.outOfMemory = false;
+        Bitmap.compressionFails = true; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        Bitmap.compressionFails = false; f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage(); equal(1, EventDispatcher.count("ImageSent"));
+      }
+    }});
+    test("image reservation persists during blocked network writes", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        GateOutput gate = new GateOutput(); set(get(f.session, "transport"), "output", gate);
+        try {
+          f.extension.SendImage("photo.jpg", "Describe"); check(gate.entered.await(1, TimeUnit.SECONDS), "Image writer did not block");
+          check(f.extension.IsSendingImage(), "Image reservation released before network write");
+          f.extension.SendImage("second.jpg", "Describe"); Handler.awaitIdle(); equal(1, MediaUtil.opened.get());
+          check(errorContains("already being"), "Duplicate pending photo not rejected"); equal(0, EventDispatcher.count("ImageSent"));
+        } finally { gate.release.countDown(); }
+        f.awaitImage(); equal(1, EventDispatcher.count("ImageSent"));
+      }
+    }});
+    test("disconnect during image read cancels stream and prevents stale sends", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        MediaUtil.blockRead = true; f.extension.SendImage("content://photo/1", "Describe");
+        check(MediaUtil.readEntered.await(1, TimeUnit.SECONDS), "Image read did not reach gate");
+        f.extension.Disconnect(); f.awaitImage(); equal(0, f.output.snapshot().length); equal(0, EventDispatcher.count("ImageSent"));
+        equal(0, EventDispatcher.count("Error")); equal(MediaUtil.opened.get(), MediaUtil.closed.get());
+      }
+    }});
+    test("full writer queue rejects photo and releases pending state", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        GateOutput gate = new GateOutput(); set(get(f.session, "transport"), "output", gate);
+        try {
+          f.extension.SendText("gate"); check(gate.entered.await(1, TimeUnit.SECONDS), "Writer gate not entered");
+          for (int i = 0; i < 32; i++) f.extension.SendText("queued");
+          f.extension.SendImage("photo.jpg", "Describe");
+          await(new Condition() { public boolean met() { return errorContains("retry the image") && !f.extension.IsSendingImage(); } });
+          equal(0, EventDispatcher.count("ImageSent"));
+        } finally { gate.release.countDown(); }
+        f.awaitImage();
+      }
+    }});
+    test("replaced session cannot send old photo into the new connection", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        MediaUtil.blockRead = true; f.extension.SendImage("old-photo.jpg", "Old prompt");
+        check(MediaUtil.readEntered.await(1, TimeUnit.SECONDS), "Old image did not reach read gate");
+        Constructor<?> constructor = SESSION.getDeclaredConstructor(GeminiLive.class, String.class); constructor.setAccessible(true);
+        Object replacement = constructor.newInstance(f.extension, "new-test-key"); Capture replacementOutput = new Capture();
+        set(replacement, "ready", true); set(replacement, "connected", true); set(replacement, "generation", 1L);
+        set(get(replacement, "transport"), "output", replacementOutput);
+        set(f.extension, "connectionGeneration", 1L); set(f.extension, "session", replacement);
+        invoke(f.extension, "closeSession", new Class<?>[] {SESSION, String.class}, f.session, "Replaced");
+        final ThreadPoolExecutor imageWorker = (ThreadPoolExecutor)get(f.extension, "imageWorker");
+        await(new Condition() { public boolean met() { return imageWorker.getActiveCount() == 0; } });
+        MediaUtil.blockRead = false; f.extension.SendImage("new-photo.jpg", "New prompt"); f.awaitImage();
+        equal(0, f.output.snapshot().length); List<JSONObject> frames = messages(replacementOutput.snapshot()); equal(2, frames.size());
+        check(frames.get(1).getJSONObject("realtimeInput").getString("text").equals("New prompt"), "Old prompt reached replacement");
+        equal(1, EventDispatcher.count("ImageSent")); equal(0, EventDispatcher.count("Error"));
+      }
+    }});
+    test("failed image network write closes session and releases reservation", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        set(get(f.session, "transport"), "output", new OutputStream() { public void write(int value) throws IOException { throw new IOException("Simulated image send failure"); } });
+        f.extension.SendImage("photo.jpg", "Describe"); f.awaitImage();
+        await(new Condition() { public boolean met() { return !f.extension.IsConnected() && errorContains("Simulated image send failure"); } });
+        equal(0, EventDispatcher.count("ImageSent")); check(!f.extension.IsSendingImage(), "Failed writer retained photo reservation");
+      }
+    }});
+    test("opening external camera stops live session and photo waits for reconnect", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.form.stops.get(0).onStop(); f.extension.SendImage("camera.jpg", "Describe"); Handler.awaitIdle();
+        equal(0, MediaUtil.opened.get()); check(!f.extension.IsReady(), "Camera activity kept stale connection ready");
+      }
+    }});
   }
 
   private static void test(String name, Test test) {

@@ -2,6 +2,7 @@ package com.google.appinventor.components.runtime;
 import java.util.*;
 import android.os.Handler;
 public class Form extends android.app.Activity {
+  public java.io.File imageCacheDir;
   public volatile boolean permissionGranted;
   public volatile int requests, deniedEvents;
   private final List<PermissionResultHandler> callbacks = new ArrayList<PermissionResultHandler>();
@@ -23,4 +24,11 @@ public class Form extends android.app.Activity {
   public void dispatchPermissionDeniedEvent(Component component, String function, String permission) { deniedEvents++; }
   public void registerForOnStop(OnStopListener listener) { stops.add(listener); }
   public void registerForOnDestroy(OnDestroyListener listener) { destroys.add(listener); }
+  public java.io.File getCacheDir() {
+    if (imageCacheDir == null) {
+      imageCacheDir = new java.io.File(System.getProperty("java.io.tmpdir"), "gemini-image-test-" + System.nanoTime());
+      if (!imageCacheDir.mkdirs()) throw new IllegalStateException("Cannot create image test cache");
+    }
+    return imageCacheDir;
+  }
 }
