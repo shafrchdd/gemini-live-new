@@ -1,0 +1,22 @@
+{
+  "source_sha256": "97d01fc53ee3999d6a87bbbbec91ec9bb6488f0b8e91d7089697bf3114b95246",
+  "aix_sha256": "9adf5aa5f297b537f725e54a65c3478f5bd7d834ff45e85554377e96c0669927",
+  "verified_at_utc": "2026-10-11T18:02:00.047845+00:00",
+  "java_source_target": 7,
+  "authentic_android_appinventor_compile": "passed",
+  "official_metadata_and_dex_packaging": "passed",
+  "required_permissions": [
+    "android.permission.INTERNET",
+    "android.permission.RECORD_AUDIO"
+  ],
+  "transport_tests": {
+    "passed": 53,
+    "failed": 0
+  },
+  "runtime_tests": {
+    "passed": 34,
+    "failed": 0
+  },
+  "physical_device_test": "not_run",
+  "authenticated_live_api_test": "not_run"
+}

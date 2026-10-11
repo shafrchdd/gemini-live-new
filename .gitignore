@@ -1,0 +1,9 @@
+build/
+dist/
+tools/vendor/
+validation/classes/
+validation/results/
+validation/original-classes/
+validation/toolchain-smoke/
+__pycache__/
+*.pyc
