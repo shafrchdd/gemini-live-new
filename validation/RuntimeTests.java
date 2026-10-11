@@ -79,6 +79,8 @@ public final class RuntimeTests {
       extension.onDestroy(); awaitStopped();
       final ThreadPoolExecutor worker = (ThreadPoolExecutor)get(extension, "imageWorker");
       await(new Condition() { public boolean met() { return worker.isTerminated(); } });
+      final Thread playbackWorker = (Thread)get(get(session, "playback"), "worker");
+      if (playbackWorker != null) await(new Condition() { public boolean met() { return !playbackWorker.isAlive(); } });
       check(Bitmap.created.get() == Bitmap.recycled.get(), "Every image bitmap must be recycled");
       check(MediaUtil.opened.get() == MediaUtil.closed.get(), "Every image stream must be closed");
       if (form.imageCacheDir != null) {
@@ -308,7 +310,7 @@ public final class RuntimeTests {
       try (Fixture f = new Fixture(true, true)) {
         AudioTrack.blockWrites = true; f.startPlayback(); f.offerPcm(960);
         check(AudioTrack.writeEntered.await(1, TimeUnit.SECONDS), "Playback did not block in AudioTrack.write");
-        f.extension.StopAudio(); equal(1, AudioTrack.released.get()); Handler.awaitIdle(); equal(0, EventDispatcher.count("Error"));
+        f.extension.StopAudio(); await(new Condition() { public boolean met() { return AudioTrack.released.get() == 1; } }); Handler.awaitIdle(); equal(0, EventDispatcher.count("Error"));
         AudioTrack.blockWrites = false; f.offerPcm(640);
         await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 320; } }); equal(2, AudioTrack.created.get());
       }
@@ -337,9 +339,122 @@ public final class RuntimeTests {
         await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 320; } }); equal(2, AudioTrack.created.get());
       }
     }});
+    playbackTests();
     imageTests();
     System.out.println("Runtime tests: " + passed + " passed, " + failed + " failed");
     if (failed != 0) throw new AssertionError("Runtime validation failed");
+  }
+
+  private static void playbackTests() throws Exception {
+    test("microphone stop and disconnect do not wait for blocked native recorder stop", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.start(); f.awaitStarted(); AudioRecord.stopEntered = new CountDownLatch(1); AudioRecord.stopRelease = new CountDownLatch(1);
+        try {
+          long start = System.nanoTime(); Handler.runSync(new Runnable() { public void run() { f.extension.StopListening(); } });
+          check(System.nanoTime() - start < TimeUnit.MILLISECONDS.toNanos(250), "Mic stop blocked UI");
+          check(AudioRecord.stopEntered.await(1, TimeUnit.SECONDS), "Mic cleanup did not reach native stop");
+          start = System.nanoTime(); Handler.runSync(new Runnable() { public void run() { f.extension.Disconnect(); } });
+          check(System.nanoTime() - start < TimeUnit.MILLISECONDS.toNanos(250), "Disconnect waited for recorder cleanup");
+        } finally { AudioRecord.stopRelease.countDown(); }
+        f.awaitStopped();
+      }
+    }});
+    test("normal fast fifteen-second response preserves all PCM instead of two-second flush", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        AudioTrack.blockWrites = true; f.startPlayback(); f.offerPcm(24000 * 2 * 12);
+        check(AudioTrack.writeEntered.await(1, TimeUnit.SECONDS), "Speaker did not accept burst");
+        f.offerPcm(24000 * 2 * 3); equal(24000 * 2 * 3, (Integer)get(get(f.session, "playback"), "queuedBytes"));
+        Handler.awaitIdle(); equal(0, EventDispatcher.count("Error")); equal(0, AudioTrack.released.get());
+        AudioTrack.blockWrites = false;
+        await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 24000 * 15; } });
+        equal(1, AudioTrack.created.get()); equal(0, AudioTrack.released.get());
+      }
+    }});
+    test("zero nonblocking writes and partial PCM writes recover without skipping", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        AudioTrack.blockWrites = true; AudioTrack.maxWriteBytes = 14; f.startPlayback(); f.offerPcm(4800);
+        check(AudioTrack.writeEntered.await(1, TimeUnit.SECONDS), "Speaker never reached backpressure");
+        Handler.awaitIdle(); equal(0, EventDispatcher.count("Error")); AudioTrack.blockWrites = false;
+        await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 2400; } });
+        equal(1, AudioTrack.created.get()); check(AudioTrack.requestedBufferBytes >= 9600, "Missing 200 ms hardware buffer");
+        check(AudioTrack.framesAtFirstPlay >= 2400, "Track was started before prefill");
+      }
+    }});
+    test("volume stop and audio-disable controls return while native cleanup is blocked", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        AudioTrack.blockWrites = true; f.startPlayback(); f.offerPcm(960);
+        check(AudioTrack.writeEntered.await(1, TimeUnit.SECONDS), "Speaker did not reach write");
+        AudioTrack.pauseEntered = new CountDownLatch(1); AudioTrack.pauseRelease = new CountDownLatch(1);
+        try {
+          long start = System.nanoTime();
+          Handler.runSync(new Runnable() { public void run() { f.extension.Volume(80); f.extension.StopAudio(); } });
+          check(System.nanoTime() - start < TimeUnit.MILLISECONDS.toNanos(250), "Playback controls blocked UI");
+          check(AudioTrack.pauseEntered.await(1, TimeUnit.SECONDS), "Cleanup did not reach native pause gate");
+          start = System.nanoTime();
+          Handler.runSync(new Runnable() { public void run() { f.extension.Volume(30); f.extension.AudioEnabled(false); f.extension.StopAudio(); } });
+          check(System.nanoTime() - start < TimeUnit.MILLISECONDS.toNanos(250), "UI waited for cleanup lock");
+          for (String call : AudioTrack.nativeCalls) check(call.endsWith("@GeminiLive-playback"), "Native speaker call escaped worker: " + call);
+        } finally { AudioTrack.pauseRelease.countDown(); }
+        await(new Condition() { public boolean met() { return AudioTrack.released.get() == 1; } });
+      }
+    }});
+    test("playback overflow stops one whole response and resumes at next turn", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        AudioTrack.blockWrites = true; f.startPlayback(); f.offerPcm(24000 * 2 * 20);
+        check(AudioTrack.writeEntered.await(1, TimeUnit.SECONDS), "Speaker did not reach gate");
+        f.offerPcm(24000 * 2 * 20); f.offerPcm(960); Handler.awaitIdle();
+        check(errorContains("bounded playback capacity"), "Overflow was not diagnosed");
+        equal(1, EventDispatcher.count("Error")); equal(0, (Integer)get(get(f.session, "playback"), "queuedBytes"));
+        f.inbound("{\"serverContent\":{\"turnComplete\":true}}"); AudioTrack.blockWrites = false; f.offerPcm(640);
+        await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 320; } });
+        equal(1, EventDispatcher.count("Error"));
+      }
+    }});
+    test("startup waits briefly for jitter but completed short turn starts without starvation", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.startPlayback(); f.offerPcm(640); Thread.sleep(30); equal(0, AudioTrack.created.get());
+        f.inbound("{\"serverContent\":{\"generationComplete\":true,\"turnComplete\":true}}");
+        await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 320; } });
+        equal(1, AudioTrack.created.get());
+      }
+    }});
+    test("thousand streaming text deltas use one batch and precede TurnComplete", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        final CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);
+        new Handler().post(new Runnable() { public void run() { entered.countDown(); try { release.await(3, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); } }});
+        check(entered.await(1, TimeUnit.SECONDS), "UI gate did not start");
+        try {
+          for (int i = 0; i < 1000; i++) f.inbound("{\"serverContent\":{\"modelTurn\":{\"parts\":[{\"text\":\"x\"}]},\"inputTranscription\":{\"text\":\"y\"},\"outputTranscription\":{\"text\":\"z\"}}}");
+          f.inbound("{\"serverContent\":{\"turnComplete\":true}}");
+        } finally { release.countDown(); }
+        Handler.awaitIdle(); equal(1, EventDispatcher.count("InputTranscription")); equal(1, EventDispatcher.count("OutputTranscription"));
+        equal(1, EventDispatcher.count("TextReceived")); equal(1, EventDispatcher.count("TurnComplete")); equal(0, EventDispatcher.count("RawMessage"));
+        for (EventDispatcher.Event event : EventDispatcher.events) if (event.name.equals("TextReceived") || event.name.endsWith("Transcription")) equal(1000, event.arguments[0].toString().length());
+        check(EventDispatcher.events.get(EventDispatcher.events.size() - 1).name.equals("TurnComplete"), "Turn finished before final text delivery"); assertUiEvents();
+      }
+    }});
+    test("opt-in raw diagnostics are bounded when UI cannot keep up", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.RawMessagesEnabled(true);
+        final CountDownLatch entered = new CountDownLatch(1), release = new CountDownLatch(1);
+        new Handler().post(new Runnable() { public void run() { entered.countDown(); try { release.await(3, TimeUnit.SECONDS); } catch (InterruptedException e) { Thread.currentThread().interrupt(); } }});
+        check(entered.await(1, TimeUnit.SECONDS), "UI gate did not start");
+        try {
+          for (int i = 0; i < 64; i++) f.inbound("{}");
+          equal(4, ((AtomicInteger)get(f.session, "pendingRawEvents")).get());
+        } finally { release.countDown(); }
+        Handler.awaitIdle(); equal(4, EventDispatcher.count("RawMessage")); equal(1, EventDispatcher.count("Error"));
+        equal(0, ((AtomicInteger)get(f.session, "pendingRawEvents")).get()); check(f.extension.IsReady(), "Raw overflow affected actual session");
+      }
+    }});
+    test("disconnect inside batched text callback suppresses remaining stale events", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        EventDispatcher.listener = new EventDispatcher.Listener() { public void onEvent(String name) { if (name.equals("InputTranscription")) f.extension.Disconnect(); } };
+        f.inbound("{\"serverContent\":{\"inputTranscription\":{\"text\":\"input\"},\"outputTranscription\":{\"text\":\"old output\"},\"modelTurn\":{\"parts\":[{\"text\":\"old text\"}]},\"turnComplete\":true}}");
+        Handler.awaitIdle(); equal(1, EventDispatcher.count("InputTranscription")); equal(0, EventDispatcher.count("OutputTranscription"));
+        equal(0, EventDispatcher.count("TextReceived")); equal(0, EventDispatcher.count("TurnComplete")); check(!f.extension.IsConnected(), "Callback did not disconnect");
+      } finally { EventDispatcher.listener = null; }
+    }});
   }
 
   private static void imageTests() throws Exception {

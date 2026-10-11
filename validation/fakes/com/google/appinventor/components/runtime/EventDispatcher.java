@@ -1,6 +1,8 @@
 package com.google.appinventor.components.runtime;
 import java.util.*;
 public final class EventDispatcher {
+  public interface Listener { void onEvent(String name); }
+  public static volatile Listener listener;
   public static final List<Event> events = Collections.synchronizedList(new ArrayList<Event>());
   public static final class Event {
     public final String name, thread;
@@ -10,12 +12,15 @@ public final class EventDispatcher {
     }
   }
   public static boolean dispatchEvent(Component component, String name, Object... arguments) {
-    events.add(new Event(name, arguments)); return true;
+    events.add(new Event(name, arguments));
+    Listener handler = listener;
+    if (handler != null) handler.onEvent(name);
+    return true;
   }
   public static int count(String name) {
     int count = 0;
     synchronized (events) { for (Event event : events) if (event.name.equals(name)) count++; }
     return count;
   }
-  public static void reset() { events.clear(); }
+  public static void reset() { events.clear(); listener = null; }
 }

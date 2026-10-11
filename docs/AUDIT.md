@@ -1,4 +1,4 @@
-# Audit of GeminiLive version 3
+# Audit of GeminiLive version 4
 
 ## Scope and evidence
 
@@ -53,11 +53,19 @@ Photo preparation runs on a separate single-thread worker with one queued job, a
 
 The AIA embeds version 3 and adds native Camera, ImagePicker, preview, prompt, and send controls. It disconnects before launching external camera/gallery activities and waits for reconnection/readiness before sending. The existing foreground-only microphone lifecycle remains in effect. Continuous camera streaming is outside this release.
 
-## Phase 4: validation and limits
+## Phase 4: playback and responsiveness
+
+The user reported word-by-word buffering, skipped audio, growing delays, and Android's unresponsive-app warning. Source review found that `AudioTrack.write` held a lock also acquired by UI volume/flush operations. Flush additionally ran native pause/release from the caller. Independently, the two-second PCM queue cleared buffered speech when normal generation bursts exceeded that cap. These are verified defects, not proof of the user's complete device-specific cause without phone traces.
+
+Version 4 makes the playback worker the owner of all native speaker operations. UI volume/stop/disable operations only signal state; they do not wait for native cleanup. Microphone cancellation likewise schedules native stop outside the UI thread; a per-capture control lock coordinates stop and worker-owned release. Android API 23+ uses nonblocking writes, including ordinary zero-write backpressure and partial writes. A startup prebuffer of up to 120 ms and a native buffer of at least 200 ms address short arrival gaps. Up to 30 seconds/4 MiB of unwritten speech can be held for fast generation bursts. Exceeding this cap stops the affected response and discards its remaining audio until `turnComplete`, then permits later turns; it does not repeatedly clear and resume fragments of the same response.
+
+Raw events default off, and explicitly enabled raw diagnostics have a bounded UI budget with a visible warning. Text/transcript deltas are combined over 100 ms and drained before `TurnComplete`, avoiding a separate UI runnable for each word. `PlaybackBufferedMilliseconds()` reads the software queue without native audio access. The test AIA enables microphone muting during assistant speech as its baseline to reduce feedback-triggered interruptions, while the extension's existing mute default remains false.
+
+## Phase 5: validation and limits
 
 The reproducible build uses genuine MIT annotation processors and extension packaging tools. It checks that generated extension metadata contains both required permissions and that the package contains valid DEX bytecode. Runtime tests execute the production extension bytecode with deterministic Android/App Inventor doubles. They test asynchronous permission and lifecycle behavior, not real hardware.
 
-Final validation passed: authentic Java compilation, official component metadata generation, DEX packaging, **53 transport tests, and 49 runtime tests** (102 passed, 0 failed). Image tests cover protocol shape, worker placement, resizing, orientation, byte budgets, cleanup, failures, pending reservations, disconnection/replacement, writer rejection, and camera activity lifecycle. All original public block signatures were retained. `dist/validation-results.json` ties this result to the final source and `.aix` SHA-256 digests. The AIA passes offline archive and block validation; actual Kodular import/export remains untested.
+Final validation passed: authentic Java compilation, official component metadata generation, DEX packaging, **53 transport tests, and 58 runtime tests** (111 passed, 0 failed). Image tests cover protocol shape, worker placement, resizing, orientation, byte budgets, cleanup, failures, pending reservations, disconnection/replacement, writer rejection, and camera activity lifecycle. Playback tests prove retention of a fifteen-second burst, complete partial writes, responsive controls while native speaker/recorder cleanup is blocked, bounded overflow, jitter priming, lossless transcript batching, stale-callback suppression, and bounded raw diagnostics. All original public block signatures were retained. `dist/validation-results.json` ties this result to the final source and `.aix` SHA-256 digests. The AIA passes offline archive and block validation; actual Kodular import/export remains untested.
 
 The WebSocket tests exercise framing/handshake parsing and concurrent output using local streams. They do not authenticate to Gemini or validate a live TLS connection on an Android device. No API key was available in this task.
 
@@ -74,6 +82,7 @@ Twenty-millisecond capture batches reduce this extension's original capture batc
 7. Test with another recording component stopped, then with the intended combination of components. Android may enforce microphone exclusivity; the extension cannot override that policy.
 8. Test the actual target phone/Android versions and measure response latency there. If the new diagnostics report zero PCM or initialization failure, use that message and the phone's Android version to isolate the remaining device issue.
 9. Capture a portrait photo and select a gallery image. Reconnect, wait for readiness, and send each with a prompt. Confirm visual recognition, orientation, and spoken/transcribed response with the actual Live model/API key. Test URI grants, canceled camera/gallery, unreadable media, and disconnect during photo preparation on the phone.
+10. With the microphone stopped, request a longer spoken response and listen for complete continuous speech. Repeat with microphone capture and its mute-during-speech option enabled. Exercise volume, stop, audio disable/re-enable, backgrounding, and reconnect while audio is buffered; verify responsiveness and inspect errors/backlog. Compare headphones or microphone muting if server interruptions occur while the speaker plays.
 
 ## Authoritative references checked
 

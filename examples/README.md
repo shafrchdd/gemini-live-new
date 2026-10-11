@@ -2,7 +2,7 @@
 
 [Download GeminiLiveTest.aia](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia)
 
-In Kodular Creator, use **Projects → Import project (.aia) from my computer**, then select this file. It includes the compiled GeminiLive version 3 extension and the complete screen/blocks; you do not need to import the `.aix` separately.
+In Kodular Creator, use **Projects → Import project (.aia) from my computer**, then select this file. It includes the compiled GeminiLive version 4 extension and the complete screen/blocks; you do not need to import the `.aix` separately.
 
 To test an image with a prompt:
 
@@ -24,7 +24,9 @@ For microphone and text tests:
 
 The Companion and installed APK have separate microphone permissions. Test the APK's first grant, denial, and retry. The app displays the extension's `Error` event and Android permission errors. **Stop mic** also cancels a pending start, including a permission dialog that has not returned yet.
 
-If the input remains silent, check the displayed error and level while speaking. Check Android's microphone privacy switch and other active recording apps. Turn off echo cancellation/noise suppression, stop the mic, then start again to compare capture without device effects. The **Mute microphone during AI speech** checkbox applies immediately; enabling it deliberately prevents voice barge-in.
+If the input remains silent, check the displayed error and level while speaking. Check Android's microphone privacy switch and other active recording apps. Turn off echo cancellation/noise suppression, stop the mic, then start again to compare capture without device effects. The **Mute microphone during AI speech** checkbox applies immediately and is now enabled by default to avoid speaker feedback; uncheck it to test voice barge-in.
+
+For choppy audio, first uncheck automatic listening, connect, and send a text prompt with the microphone stopped. Watch **Playback waiting** while listening: it shows unwritten PCM backlog rather than network or hardware delay. Compare with microphone capture enabled afterward. Raw diagnostic events are disabled and transcripts update in small batches to reduce UI work. Stop audio and volume changes request worker cleanup rather than waiting on speaker writes. The example remains a diagnostic app; test actual audio and responsiveness on your phone.
 
 Use **Stop AI audio** to verify interruptions and future playback, **Disconnect** for cleanup, and **Clear display** to reset only the displayed transcripts/errors. Each transcript retains the most recent 2,000 characters. Returning after backgrounding requires a fresh connection; the extension closes its session when the screen stops.
 

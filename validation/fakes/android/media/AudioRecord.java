@@ -1,6 +1,7 @@
 package android.media;
 import java.util.*;
 import java.util.concurrent.atomic.*;
+import java.util.concurrent.*;
 /** Recorder double tracks exclusivity, leaks, source fallback and read failures. */
 public class AudioRecord {
   public static final int STATE_UNINITIALIZED = 0, STATE_INITIALIZED = 1;
@@ -11,6 +12,7 @@ public class AudioRecord {
   public static final List<Integer> sources = Collections.synchronizedList(new ArrayList<Integer>());
   public static volatile int rejectSource = -1, readFailure = 0, minimumBuffer = 2048;
   public static volatile boolean failAllSources, denyStart;
+  public static volatile CountDownLatch stopEntered, stopRelease;
   public final int source;
   private final boolean initialized;
   private volatile boolean recording, disposed;
@@ -36,7 +38,17 @@ public class AudioRecord {
     Arrays.fill(destination, offset, offset + length, (byte) 0x12);
     return length;
   }
-  public void stop() { if (recording) { recording = false; active.decrementAndGet(); } }
+  public void stop() {
+    if (recording) {
+      CountDownLatch entered = stopEntered, release = stopRelease;
+      if (entered != null && release != null) {
+        entered.countDown();
+        try { if (!release.await(3, TimeUnit.SECONDS)) throw new IllegalStateException("Test recorder stop gate timed out"); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+      }
+      recording = false; active.decrementAndGet();
+    }
+  }
   public void release() {
     if (disposed) throw new IllegalStateException("Double recorder release");
     stop(); disposed = true; released.incrementAndGet();
@@ -45,5 +57,6 @@ public class AudioRecord {
     if (active.get() != 0) throw new IllegalStateException("Previous test leaked a running recorder");
     created.set(0); released.set(0); maxActive.set(0); sources.clear();
     rejectSource = -1; readFailure = 0; minimumBuffer = 2048; failAllSources = false; denyStart = false;
+    stopEntered = stopRelease = null;
   }
 }

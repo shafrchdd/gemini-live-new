@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a deterministic Kodular test project containing GeminiLive v3.
+"""Generate a deterministic Kodular test project containing GeminiLive v4.
 
 Uses a known Kodular export baseline and canonical component Blockly XML.
 No API key is stored in the project. Extension assets are copied byte-for-byte
@@ -25,7 +25,7 @@ LANGUAGE_VERSION = "29"
 VERSIONS = {
     "Form": "42", "VerticalArrangement": "10", "HorizontalArrangement": "10",
     "Label": "10", "Button": "13", "CheckBox": "6", "Clock": "4",
-    "TextBox": "13", "Camera": "4", "ImagePicker": "12", "Image": "7", EXTENSION: "3",
+    "TextBox": "13", "Camera": "4", "ImagePicker": "12", "Image": "7", EXTENSION: "4",
 }
 
 
@@ -252,7 +252,7 @@ class ProjectBuilder:
         button = lambda name, text, enabled=True: c(name, "Button", Text=text,
                                                    Enabled="True" if enabled else "False", FontSize="15")
         children = [
-            label("HeadingLabel", "Gemini Live v3 - microphone and photo test", FontSize="22", FontBold="True"),
+            label("HeadingLabel", "Gemini Live v4 - microphone and photo test", FontSize="22", FontBold="True"),
             label("InstructionsLabel", "For a photo: take or choose it first, uncheck automatic listening, then Connect and Send photo. Opening the camera or gallery disconnects Live; reconnect after returning. Auto listen waits for SetupComplete. Compare Companion and a freshly built APK.", FontSize="14"),
             label("ApiKeyLabel", "API key (not saved)", FontBold="True"),
             c("ApiKeyInput", "TextBox", Text="", InputType="2", Hint="Enter your Gemini API key", Width="-2", FontSize="16"),
@@ -271,10 +271,11 @@ class ProjectBuilder:
             c("AutoListenCheck", "CheckBox", Text="Start listening automatically when Gemini is ready", Checked="True", Width="-2"),
             c("EchoCheck", "CheckBox", Text="Acoustic echo cancellation (apply on next Start)", Checked="True", Width="-2"),
             c("NoiseCheck", "CheckBox", Text="Noise suppression (apply on next Start)", Checked="True", Width="-2"),
-            c("MuteCheck", "CheckBox", Text="Mute microphone during AI speech (no barge-in)", Checked="False", Width="-2"),
+            c("MuteCheck", "CheckBox", Text="Mute microphone during AI speech (no barge-in)", Checked="True", Width="-2"),
             label("StatusLabel", "Connection: disconnected", FontBold="True"),
             label("MicStatusLabel", "Microphone: stopped"),
             label("LevelLabel", "Microphone level: 0 / 100"),
+            label("PlaybackLevelLabel", "Playback waiting: 0 ms (software queue)"),
             label("ErrorHeadingLabel", "Last error / permission result", FontBold="True"),
             label("ErrorLabel", "", TextColor="&HFFB00020", FontSize="15"),
             c("ConnectionRow", "HorizontalArrangement", children=[button("ConnectButton", "Connect"), button("DisconnectButton", "Disconnect", False)], Width="-2"),
@@ -292,16 +293,17 @@ class ProjectBuilder:
         ]
         panel = c("MainPanel", "VerticalArrangement", children=children, Width="-2")
         clock = c("LevelClock", "Clock", TimerInterval="300", TimerEnabled="False", TimerAlwaysFires="False")
+        playback_clock = c("PlaybackClock", "Clock", TimerInterval="500", TimerEnabled="True", TimerAlwaysFires="False")
         camera = c("Camera1", "Camera")
         extension = c("GeminiLive1", EXTENSION, Model="gemini-3.8-live", Voice="Puck",
                       RawMessagesEnabled="False", EchoCancellation="True", NoiseSuppression="True",
-                      MuteMicWhileSpeaking="False", AudioEnabled="True", Volume="100")
+                      MuteMicWhileSpeaking="True", AudioEnabled="True", Volume="100")
         props = {"$Name": "Screen1", "$Type": "Form", "$Version": VERSIONS["Form"], "Uuid": "0",
                  "AppName": "Gemini Live Test v3", "Title": "Gemini Live Test v3", "Scrollable": "True",
                  "Sizing": "Responsive", "BackgroundColor": "&HFFFFFFFF", "ShowListsAsJson": "True",
                  "Theme": "AppTheme.Light.DarkActionBar", "PrimaryColor": "&HFF245A81",
                  "PrimaryColorDark": "&HFF153951", "AccentColor": "&HFF007D77",
-                 "$Components": [panel, clock, camera, extension]}
+                 "$Components": [panel, clock, playback_clock, camera, extension]}
         data = {"authURL": ["creator.kodular.io"], "YaVersion": YA_VERSION, "Source": "Form", "Properties": props}
         return "#|\n$JSON\n" + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n|#\n"
 
@@ -384,6 +386,9 @@ class ProjectBuilder:
                 self.prop("StartButton", "Enabled", self.method("GeminiLive1", "IsReady")), self.enabled("StopButton", False)])])])
         self.event("LevelClock", "Timer", [self.prop("LevelLabel", "Text", self.join(
             self.literal("Microphone level: "), self.method("GeminiLive1", "MicrophoneLevel"), self.literal(" / 100")))])
+        self.event("PlaybackClock", "Timer", [self.prop("PlaybackLevelLabel", "Text", self.join(
+            self.literal("Playback waiting: "), self.method("GeminiLive1", "PlaybackBufferedMilliseconds"),
+            self.literal(" ms (software queue)")))])
         self.event("SendButton", "Click", [self.conditional(self.method("GeminiLive1", "IsReady"), [
             self.set_text("ErrorLabel", ""), self.set_text("OutputTranscriptLabel", ""), self.set_text("TextReplyLabel", ""),
             self.method("Screen1", "HideKeyboard"), self.method("GeminiLive1", "SendText", self.prop("MessageInput", "Text"))],
@@ -430,7 +435,7 @@ def main():
     bky = builder.blocks()
     properties = "\n".join([
         "main=" + PACKAGE + ".Screen1", "name=" + PROJECT, "assets=../assets", "source=../src",
-        "build=../build", "icon=", "versioncode=3", "versionname=3.0", "useslocation=False",
+        "build=../build", "icon=", "versioncode=4", "versionname=4.0", "useslocation=False",
         "aname=Gemini Live Test v3", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
         "showlistsasjson=True", "theme=AppTheme.Light.DarkActionBar", "color.primary=&HFF245A81",
         "color.primary.dark=&HFF153951", "color.accent=&HFF007D77", "",

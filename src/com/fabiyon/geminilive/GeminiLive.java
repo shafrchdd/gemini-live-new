@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@DesignerComponent(version=3, description="Direct Gemini Live client with microphone streaming, photo and text input, safe session cleanup, and bounded media queues.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
+@DesignerComponent(version=4, description="Direct Gemini Live client with microphone streaming, photo and text input, safe session cleanup, and bounded media queues.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.INTERNET,android.permission.RECORD_AUDIO")
 public class GeminiLive extends AndroidNonvisibleComponent implements OnStopListener, OnDestroyListener, Deleteable {
@@ -64,7 +64,7 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   private volatile boolean noiseSuppression = true;
   private volatile boolean muteMicWhileSpeaking;
   private volatile boolean audioEnabled = true;
-  private volatile boolean rawMessagesEnabled = true;
+  private volatile boolean rawMessagesEnabled;
   private volatile float volume = 1f;
 
   public GeminiLive(ComponentContainer container) {
@@ -129,7 +129,7 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
 
   @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Dispatch RawMessage, including audio Base64. Disable when unused to reduce UI work.")
   public boolean RawMessagesEnabled() { return rawMessagesEnabled; }
-  @DesignerProperty(editorType="boolean", defaultValue="True")
+  @DesignerProperty(editorType="boolean", defaultValue="False")
   @SimpleProperty(category=PropertyCategory.BEHAVIOR)
   public void RawMessagesEnabled(boolean value) { rawMessagesEnabled = value; }
 
@@ -161,6 +161,8 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   }
   @SimpleFunction(description="Latest captured microphone peak level, 0 to 100. Zero can indicate silence or Android microphone privacy blocking.")
   public int MicrophoneLevel() { MicRun mic = microphone; return mic == null ? 0 : mic.level; }
+  @SimpleFunction(description="Assistant audio awaiting speaker writes, in milliseconds. Excludes Android hardware and network buffering; does not call native audio from the UI thread.")
+  public int PlaybackBufferedMilliseconds() { Session s = session; return current(s) ? s.playback.bufferedMilliseconds() : 0; }
 
   @SimpleFunction(description="Clear functions for the next connection.")
   public void ClearFunctions() { synchronized (functionsLock) { functions.clear(); } }
@@ -614,7 +616,7 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   @SimpleFunction(description="Cancel pending permission/start requests, stop capture, release its resources, and then send audioStreamEnd.")
   public void StopListening() { synchronized (stateLock) { stopMicLocked(); } }
 
-  @SimpleFunction(description="Stop and flush currently buffered assistant audio.")
+  @SimpleFunction(description="Request stop and flush of buffered assistant audio. Returns without waiting for native speaker cleanup on the playback worker.")
   public void StopAudio() { Session s = session; if (s != null) s.playback.flush(); }
 
   @SimpleFunction(description="Fetch compatible Live models, including paginated native-audio models.")
@@ -695,6 +697,9 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     final Transport transport = new Transport();
     final AtomicBoolean closed = new AtomicBoolean();
     final AtomicInteger pendingAudio = new AtomicInteger();
+    final AtomicInteger pendingRawEvents = new AtomicInteger();
+    final AtomicBoolean rawOverflowReported = new AtomicBoolean();
+    final TextEvents textEvents = new TextEvents(this);
     final AtomicBoolean imagePending = new AtomicBoolean();
     long imageGeneration;
     Future<?> imageFuture;
@@ -796,18 +801,28 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     volatile boolean started;
     volatile int level;
     volatile AudioRecord recorder;
+    private final Object recorderControlLock = new Object();
     AcousticEchoCanceler aec;
     NoiseSuppressor ns;
     boolean startedEvent;
     MicRun(Session owner, long generation) { this.owner = owner; this.generation = generation; }
 
     void cancel() {
-      cancelled = true;
-      AudioRecord record = recorder;
-      if (record != null) {
-        try { if (record.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) record.stop(); }
-        catch (RuntimeException ignored) { /* Worker retains ownership and releases it. */ }
+      final AudioRecord record;
+      synchronized (this) {
+        if (cancelled) return;
+        cancelled = true;
+        record = recorder;
       }
+      if (record != null) threadFactory("GeminiLive-microphone-stop").newThread(new Runnable() {
+        public void run() {
+          synchronized (recorderControlLock) {
+            if (recorder != record) return;
+            try { if (record.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) record.stop(); }
+            catch (RuntimeException ignored) { /* Capture worker retains ownership and releases it. */ }
+          }
+        }
+      }).start();
     }
 
     private boolean active() { return !cancelled && wantMic(owner, generation); }
@@ -905,14 +920,16 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     }
 
     private void releaseRecorder() {
-      AudioRecord record = recorder;
-      if (record != null) {
-        try { if (record.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) record.stop(); } catch (RuntimeException ignored) { }
+      synchronized (recorderControlLock) {
+        AudioRecord record = recorder;
+        if (record != null) {
+          try { if (record.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) record.stop(); } catch (RuntimeException ignored) { }
+        }
+        if (aec != null) { try { aec.release(); } catch (RuntimeException ignored) { } aec = null; }
+        if (ns != null) { try { ns.release(); } catch (RuntimeException ignored) { } ns = null; }
+        if (record != null) { try { record.release(); } catch (RuntimeException ignored) { } }
+        recorder = null;
       }
-      if (aec != null) { try { aec.release(); } catch (RuntimeException ignored) { } aec = null; }
-      if (ns != null) { try { ns.release(); } catch (RuntimeException ignored) { } ns = null; }
-      if (record != null) { try { record.release(); } catch (RuntimeException ignored) { } }
-      recorder = null;
     }
   }
 
@@ -925,7 +942,19 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
 
   private void handleMessage(final Session owner, final String message) {
     if (!current(owner)) return;
-    if (rawMessagesEnabled) post(owner, new Runnable() { public void run() { RawMessage(message); } });
+    if (rawMessagesEnabled) {
+      if (message.length() <= 262144 && owner.pendingRawEvents.incrementAndGet() <= 4) {
+        ui.post(new Runnable() {
+          public void run() {
+            try { if (current(owner) && rawMessagesEnabled) RawMessage(message); }
+            finally { owner.pendingRawEvents.decrementAndGet(); }
+          }
+        });
+      } else {
+        if (message.length() <= 262144) owner.pendingRawEvents.decrementAndGet();
+        if (owner.rawOverflowReported.compareAndSet(false, true)) Error("RawMessage diagnostics exceeded the UI budget and were dropped. Disable RawMessagesEnabled for smooth playback; audio and normal events are unaffected.");
+      }
+    }
     try {
       JSONObject root = new JSONObject(message);
       JSONObject serverError = root.optJSONObject("error");
@@ -970,7 +999,7 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
       if (parts != null) for (int i = 0; i < parts.length(); ++i) {
         JSONObject part = parts.getJSONObject(i);
         final String text = part.optString("text", "");
-        if (!text.isEmpty()) post(owner, new Runnable() { public void run() { TextReceived(text); } });
+        if (!text.isEmpty()) owner.textEvents.append(2, text);
         JSONObject inline = part.optJSONObject("inlineData");
         if (inline != null && audioEnabled && !interrupted) {
           String mime = inline.optString("mimeType", "");
@@ -983,18 +1012,55 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
       JSONObject input = content.optJSONObject("inputTranscription");
       if (input != null) {
         final String text = input.optString("text", "");
-        if (!text.isEmpty()) post(owner, new Runnable() { public void run() { InputTranscription(text); } });
+        if (!text.isEmpty()) owner.textEvents.append(0, text);
       }
       JSONObject output = content.optJSONObject("outputTranscription");
       if (output == null) output = content.optJSONObject("outputAudioTranscription");
       if (output != null) {
         final String text = output.optString("text", "");
-        if (!text.isEmpty()) post(owner, new Runnable() { public void run() { OutputTranscription(text); } });
+        if (!text.isEmpty()) owner.textEvents.append(1, text);
       }
       // turnComplete is generation completion, not evidence that the speaker buffer drained.
-      if (content.optBoolean("turnComplete", false)) post(owner, new Runnable() { public void run() { TurnComplete(); } });
+      boolean turnComplete = content.optBoolean("turnComplete", false);
+      if (turnComplete || content.optBoolean("generationComplete", false)) owner.playback.finishTurn(turnComplete);
+      if (turnComplete) post(owner, new Runnable() { public void run() { owner.textEvents.drain(); if (current(owner)) TurnComplete(); } });
     } catch (Exception e) {
       if (current(owner)) Error("Incoming message: " + detail(e, owner.key));
+    }
+  }
+
+  /** Combine small transcript deltas without allocating an unbounded UI runnable per word. */
+  private final class TextEvents {
+    final Session owner;
+    final StringBuilder[] pending = {new StringBuilder(), new StringBuilder(), new StringBuilder()};
+    boolean scheduled;
+    boolean overflowReported;
+    final Runnable delivery = new Runnable() { public void run() { drain(); } };
+    TextEvents(Session owner) { this.owner = owner; }
+    void append(int kind, String text) {
+      boolean overflow = false;
+      synchronized (this) {
+        if (!current(owner)) return;
+        if (text.length() > 65536 - pending[kind].length()) {
+          if (!overflowReported) { overflowReported = true; overflow = true; }
+        } else {
+          pending[kind].append(text);
+          if (!scheduled) { scheduled = true; ui.postDelayed(delivery, 100); }
+        }
+      }
+      if (overflow) Error("Transcript UI buffer exceeded its budget; some diagnostic text was omitted. Reduce work in transcript event handlers.");
+    }
+    void drain() {
+      String[] text = new String[3];
+      synchronized (this) {
+        ui.removeCallbacks(delivery);
+        scheduled = false;
+        for (int i = 0; i < 3; i++) { text[i] = pending[i].toString(); pending[i].setLength(0); }
+      }
+      if (!current(owner)) return;
+      if (current(owner) && !text[0].isEmpty()) InputTranscription(text[0]);
+      if (current(owner) && !text[1].isEmpty()) OutputTranscription(text[1]);
+      if (current(owner) && !text[2].isEmpty()) TextReceived(text[2]);
     }
   }
 
@@ -1015,133 +1081,183 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     final byte[] data;
     final int rate;
     final long epoch;
+    final long receivedAt = System.nanoTime();
     PcmChunk(byte[] data, int rate, long epoch) { this.data = data; this.rate = rate; this.epoch = epoch; }
   }
 
   private final class Playback implements Runnable {
+    private static final long MAX_QUEUED_MICROS = 30000000L;
+    private static final int MAX_QUEUED_BYTES = 4 * 1024 * 1024;
+    private static final long STARTUP_MICROS = 120000L;
     private final Session owner;
     private final Object queueLock = new Object();
-    private final Object trackLock = new Object();
-    private final Object flushLock = new Object();
     private final ArrayDeque<PcmChunk> queue = new ArrayDeque<PcmChunk>();
     private volatile boolean closed;
     private volatile boolean flushing;
     private volatile long epoch;
     volatile boolean speaking;
-    private volatile AudioTrack track;
+    private AudioTrack track; // Every native track operation belongs to the playback worker.
     private int trackRate;
     private int queuedBytes;
+    private long queuedMicros;
+    private int activeBytes;
+    private long activeMicros;
     private long writtenFrames;
-    private boolean overflowReported;
+    private boolean trackPlaying;
+    private float appliedVolume = -1;
+    private boolean generationFinished;
+    private boolean discardUntilTurnComplete;
     private Thread worker;
     Playback(Session owner) { this.owner = owner; }
 
     void start() {
-      worker = new Thread(this, "GeminiLive-playback");
-      worker.setDaemon(true);
+      worker = threadFactory("GeminiLive-playback").newThread(this);
       worker.start();
     }
+
+    private long duration(byte[] pcm, int rate) { return (pcm.length / 2L) * 1000000L / rate; }
 
     void offer(byte[] pcm, int rate) throws IOException {
       if (closed || !current(owner) || !audioEnabled || pcm.length == 0) return;
       if ((pcm.length & 1) != 0) throw new IOException("Assistant audio contains an incomplete PCM16 sample");
       boolean overflow = false;
       synchronized (queueLock) {
-        if (closed || !audioEnabled) return;
-        int limit = rate * 2 * 2; // Two seconds maximum; never accumulate minutes of delayed audio.
-        if (pcm.length > limit) throw new IOException("Assistant audio chunk exceeds the playback queue limit");
-        if (queuedBytes + pcm.length > limit) overflow = true;
-        else {
+        if (closed || !audioEnabled || discardUntilTurnComplete) return;
+        long micros = duration(pcm, rate);
+        if (pcm.length > MAX_QUEUED_BYTES - queuedBytes - activeBytes
+            || micros > MAX_QUEUED_MICROS - queuedMicros - activeMicros) {
+          resetLocked();
+          discardUntilTurnComplete = true;
+          overflow = true;
+        } else {
           queue.addLast(new PcmChunk(pcm, rate, epoch));
           queuedBytes += pcm.length;
+          queuedMicros += micros;
+          generationFinished = false;
           speaking = true;
           queueLock.notifyAll();
         }
       }
-      if (overflow) {
-        // Fail visibly rather than growing memory or silently skipping words in a response.
-        flush();
-        if (!overflowReported) { overflowReported = true; Error("Playback buffer overflow. Buffered audio was cleared to limit delay."); }
+      if (overflow) Error("Audio response exceeded the bounded playback capacity. This response was stopped; use shorter replies or check device playback. Later turns can play normally.");
+    }
+
+    void finishTurn(boolean turnComplete) {
+      synchronized (queueLock) {
+        generationFinished = true;
+        if (turnComplete) discardUntilTurnComplete = false;
+        queueLock.notifyAll();
       }
     }
 
-    void updateVolume() {
-      synchronized (trackLock) {
-        if (track != null) {
-          try { track.setStereoVolume(volume, volume); }
-          catch (RuntimeException e) { if (current(owner)) Error("Volume: " + detail(e, owner.key)); }
-        }
-      }
+    void updateVolume() { synchronized (queueLock) { queueLock.notifyAll(); } }
+
+    int bufferedMilliseconds() {
+      synchronized (queueLock) { return (int)((queuedMicros + activeMicros) / 1000); }
     }
 
+    private void resetLocked() {
+      ++epoch;
+      flushing = true;
+      queue.clear();
+      queuedBytes = 0;
+      queuedMicros = 0;
+      activeBytes = 0;
+      activeMicros = 0;
+      generationFinished = false;
+      speaking = false;
+      queueLock.notifyAll();
+    }
+
+    // Public controls change state only; pause/flush/release must never run on the UI thread.
     void flush() {
-      synchronized (flushLock) {
-        synchronized (queueLock) {
-          flushing = true;
-          ++epoch;
-          queue.clear();
-          queuedBytes = 0;
-          speaking = false;
-          queueLock.notifyAll();
-        }
-        // Pausing unblocks a write; flushing fences new chunks until reclamation finishes.
-        AudioTrack existing = track;
-        if (existing != null) { try { existing.pause(); } catch (RuntimeException ignored) { } }
-        synchronized (trackLock) { releaseTrackLocked(); }
-        synchronized (queueLock) {
-          flushing = false;
-          speaking = !closed && audioEnabled && !queue.isEmpty();
-          queueLock.notifyAll();
-        }
+      synchronized (queueLock) {
+        resetLocked();
+        discardUntilTurnComplete = false;
       }
     }
 
     void close() {
-      closed = true;
-      flush();
+      synchronized (queueLock) { closed = true; resetLocked(); }
       Thread thread = worker;
       if (thread != null) thread.interrupt();
     }
 
     public void run() {
+      long appliedEpoch = 0;
       try {
         try { android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO); }
         catch (RuntimeException ignored) { }
         while (!closed) {
-          PcmChunk chunk;
+          if (appliedEpoch != epoch) {
+            long resetting = epoch;
+            releaseTrack();
+            synchronized (queueLock) {
+              appliedEpoch = resetting;
+              if (epoch == resetting) {
+                flushing = false;
+                speaking = !closed && audioEnabled && !queue.isEmpty();
+              }
+            }
+          }
+          applyVolume();
+          PcmChunk chunk = null;
           synchronized (queueLock) {
-            if ((queue.isEmpty() || flushing) && !closed) queueLock.wait(20);
             if (closed) break;
-            if (flushing) continue;
-            chunk = queue.pollFirst();
-            if (chunk != null) queuedBytes -= chunk.data.length;
+            if (appliedEpoch != epoch) continue;
+            PcmChunk first = queue.peekFirst();
+            boolean priming = track == null && first != null && !generationFinished
+                && queuedMicros < STARTUP_MICROS
+                && System.nanoTime() - first.receivedAt < TimeUnit.MICROSECONDS.toNanos(STARTUP_MICROS);
+            if (first == null || priming) queueLock.wait(priming ? 10 : 20);
+            else {
+              chunk = queue.removeFirst();
+              queuedBytes -= chunk.data.length;
+              queuedMicros -= duration(chunk.data, chunk.rate);
+              activeBytes = chunk.data.length;
+              activeMicros = duration(chunk.data, chunk.rate);
+            }
           }
           if (chunk == null) { refreshSpeaking(); continue; }
           try {
             int offset = 0;
-            while (offset < chunk.data.length && !closed && audioEnabled) {
-              synchronized (trackLock) {
-                if (chunk.epoch != epoch || flushing || closed || !audioEnabled) break;
-                ensureTrack(chunk.rate);
-                int count = Math.min(chunk.data.length - offset, (chunk.rate / 50) * 2);
-                int written;
-                try { written = track.write(chunk.data, offset, count); }
-                catch (RuntimeException e) {
-                  if (chunk.epoch != epoch || flushing || closed || !audioEnabled) break;
-                  throw e;
-                }
-                if (chunk.epoch != epoch || flushing || closed || !audioEnabled) break;
-                if (written <= 0 || (written & 1) != 0) throw new IOException("AudioTrack.write failed (code " + written + ")");
-                offset += written;
-                writtenFrames += written / 2;
+            while (offset < chunk.data.length && !closed && audioEnabled && chunk.epoch == epoch) {
+              ensureTrack(chunk.rate);
+              applyVolume();
+              int count = Math.min(chunk.data.length - offset, (chunk.rate / 50) * 2);
+              int written;
+              try {
+                written = android.os.Build.VERSION.SDK_INT >= 23
+                    ? track.write(chunk.data, offset, count, AudioTrack.WRITE_NON_BLOCKING)
+                    : track.write(chunk.data, offset, count);
+              } catch (RuntimeException e) {
+                if (closed || !audioEnabled || chunk.epoch != epoch) break;
+                throw e;
               }
+              if (closed || !audioEnabled || chunk.epoch != epoch) break;
+              if (written < 0 || written > count || (written & 1) != 0) throw new IOException("AudioTrack.write failed (code " + written + ")");
+              if (written == 0) {
+                synchronized (queueLock) { if (!closed && chunk.epoch == epoch) queueLock.wait(5); }
+                continue; // A full nonblocking hardware buffer is normal backpressure, not a failed turn.
+              }
+              offset += written;
+              writtenFrames += written / 2;
+              synchronized (queueLock) {
+                if (chunk.epoch == epoch) {
+                  activeBytes = chunk.data.length - offset;
+                  activeMicros = (activeBytes / 2L) * 1000000L / chunk.rate;
+                }
+              }
+              maybeStartTrack();
             }
           } catch (Exception e) {
             if (!closed && current(owner) && chunk.epoch == epoch) {
               Error("Audio playback: " + detail(e, owner.key));
               flush();
             }
+          } finally {
+            synchronized (queueLock) { if (chunk.epoch == epoch) { activeBytes = 0; activeMicros = 0; } }
           }
+          maybeStartTrack();
           refreshSpeaking();
         }
       } catch (InterruptedException ignored) {
@@ -1150,41 +1266,57 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
         if (!closed && current(owner)) Error("Audio playback: " + detail(e, owner.key));
       } finally {
         closed = true;
-        flush();
+        synchronized (queueLock) { resetLocked(); }
+        releaseTrack();
       }
     }
 
     private void ensureTrack(int rate) throws IOException {
       if (track != null && trackRate == rate) return;
-      releaseTrackLocked();
+      releaseTrack();
       int minimum = AudioTrack.getMinBufferSize(rate, AudioFormat.CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT);
       if (minimum <= 0) throw new IOException("Unsupported speaker sample rate: " + rate);
       AudioTrack created = new AudioTrack(AudioManager.STREAM_MUSIC, rate, AudioFormat.CHANNEL_OUT_MONO,
-          AudioFormat.ENCODING_PCM_16BIT, Math.max(minimum, (rate / 25) * 2), AudioTrack.MODE_STREAM);
-      if (created.getState() != AudioTrack.STATE_INITIALIZED) {
-        created.release();
-        throw new IOException("AudioTrack initialization failed");
-      }
+          AudioFormat.ENCODING_PCM_16BIT, Math.max(minimum, (rate / 5) * 2), AudioTrack.MODE_STREAM);
+      if (created.getState() != AudioTrack.STATE_INITIALIZED) { created.release(); throw new IOException("AudioTrack initialization failed"); }
       track = created;
       trackRate = rate;
       writtenFrames = 0;
-      track.setStereoVolume(volume, volume);
-      track.play();
+      trackPlaying = false;
+      appliedVolume = -1;
+      applyVolume();
     }
 
-    private void refreshSpeaking() {
-      synchronized (trackLock) {
-        synchronized (queueLock) {
-          long played = track == null ? writtenFrames : ((long) track.getPlaybackHeadPosition() & 0xffffffffL);
-          speaking = !closed && audioEnabled && (!queue.isEmpty() || (!flushing && played < writtenFrames));
-        }
+    private void applyVolume() {
+      float requested = volume;
+      if (track != null && appliedVolume != requested) {
+        appliedVolume = requested;
+        try { track.setStereoVolume(requested, requested); }
+        catch (RuntimeException e) { if (current(owner)) Error("Volume: " + detail(e, owner.key)); }
       }
     }
 
-    private void releaseTrackLocked() {
+    private void maybeStartTrack() {
+      if (track == null || trackPlaying || flushing || closed || writtenFrames == 0) return;
+      boolean readyToPlay;
+      synchronized (queueLock) {
+        readyToPlay = writtenFrames >= trackRate / 10 || (activeBytes == 0 && queue.isEmpty());
+      }
+      if (readyToPlay) { track.play(); trackPlaying = true; }
+    }
+
+    private void refreshSpeaking() {
+      long played = track == null ? writtenFrames : ((long) track.getPlaybackHeadPosition() & 0xffffffffL);
+      synchronized (queueLock) {
+        speaking = !closed && audioEnabled && (!queue.isEmpty() || activeBytes > 0 || (!flushing && played < writtenFrames));
+      }
+    }
+
+    private void releaseTrack() {
       AudioTrack existing = track;
       track = null;
       writtenFrames = 0;
+      trackPlaying = false;
       if (existing != null) {
         try { existing.pause(); } catch (RuntimeException ignored) { }
         try { existing.flush(); } catch (RuntimeException ignored) { }
@@ -1192,6 +1324,7 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
       }
     }
   }
+
 
   private void fetchCatalog(final String suppliedKey, final boolean models) {
     if (destroyed) return;

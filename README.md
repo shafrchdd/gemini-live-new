@@ -1,12 +1,12 @@
 # GeminiLive for Kodular
 
-This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. Version 3 adds camera-photo and selected-image input with text prompts.
+This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. Version 4 fixes playback skips and UI-blocking audio controls, and retains photo/text input.
 
 Downloads:
 
 - [Kodular test project (.aia)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia) — extension and example blocks included; [usage instructions](examples/README.md).
 - [Compiled Kodular extension (.aix)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/com.fabiyon.geminilive.aix)
-- [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v3.zip)
+- [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v4.zip)
 - [Java source](src/com/fabiyon/geminilive/GeminiLive.java)
 - [Audit and device checklist](docs/AUDIT.md)
 
@@ -30,7 +30,11 @@ For vision, use `Camera.TakePicture` or `ImagePicker`, keep the returned image p
 
 `MicrophoneLevel()` reports the latest captured peak, from 0 to 100. While speaking near the phone, a consistently zero level plus the zero-sample diagnostic suggests a device capture/privacy/route issue. Check Android's microphone privacy switch, this APK's microphone permission, and competing recording apps. Optional acoustic echo cancellation and noise suppression depend on the device; disable those properties before another microphone start if investigating device-specific effects.
 
-`RawMessagesEnabled` defaults to true to preserve the old event behavior. Set it to false when you do not use `RawMessage` to avoid dispatching large Base64 audio messages to the UI. `MuteMicWhileSpeaking` defaults to false; enabling it prevents voice interruption during assistant playback.
+`RawMessagesEnabled` now defaults to false. Set it explicitly to false in existing projects, which can retain the earlier saved value. Opt-in raw diagnostics are capped at four queued events and 256 KiB per message; excess diagnostics produce one warning per session. Normal audio delivery continues. Transcript/text deltas are combined for up to 100 ms, retaining their concatenated content and delivering the final text before `TurnComplete`.
+
+Native speaker writes, volume changes, pause, flush, and release run on the playback worker. `StopAudio` requests cleanup and returns promptly. Android 6+ uses nonblocking writes with partial-write handling. A startup prebuffer of up to 120 ms and a hardware buffer of at least 200 ms absorb short arrival gaps. Fast-generated responses can occupy up to 30 seconds/4 MiB of software backlog without the earlier two-second queue clearing. Exceeding that safety cap stops the current response visibly and resumes at the next completed turn. `PlaybackBufferedMilliseconds()` reports audio awaiting writes, excluding hardware/network buffers.
+
+`MuteMicWhileSpeaking` still defaults to false in the extension; the example enables it to reduce speaker feedback triggering interruptions. Disable its checkbox when intentionally testing voice barge-in. For diagnosing broken playback, first stop the microphone and send a text prompt; then compare with microphone capture enabled and muted during AI speech.
 
 Build on Linux x86-64 with Python 3.12+, Git, and network access:
 

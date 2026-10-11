@@ -496,6 +496,11 @@ def main():
         clock = components["LevelClock"]["designer"]
         require(str(clock.get("TimerAlwaysFires", "")).lower() == "false", "Meter clock must stop in background")
         require(100 <= int(clock.get("TimerInterval", "0")) <= 1000, "Invalid microphone meter interval")
+        if int(info["version"]) >= 4:
+            require(("PlaybackClock", "Timer") in events, "Missing playback queue meter")
+            require(("GeminiLive1", "PlaybackBufferedMilliseconds") in methods(events["PlaybackClock", "Timer"]), "Playback meter is not wired")
+            require(str(components["PlaybackClock"]["designer"].get("TimerAlwaysFires", "")).lower() == "false", "Playback meter must stop in background")
+            require(str(components["MuteCheck"]["designer"].get("Checked", "")).lower() == "true", "Playback diagnostic baseline should mute microphone during AI speech")
         print("PASS AIA structure, current extension payload, authentic component signatures, variable scopes, enabled blocks, permission/error handlers and connection/listening workflow")
         print(json.dumps({"aia": str(args.aia), "components": len(components), "blocks": len(all_blocks),
                           "events": len(events), "sha256": hashlib.sha256(args.aia.read_bytes()).hexdigest(),
