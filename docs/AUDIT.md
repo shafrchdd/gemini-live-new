@@ -1,4 +1,4 @@
-# Audit of GeminiLive version 4
+# Audit of GeminiLive version 5
 
 ## Scope and evidence
 
@@ -61,11 +61,17 @@ Version 4 makes the playback worker the owner of all native speaker operations. 
 
 Raw events default off, and explicitly enabled raw diagnostics have a bounded UI budget with a visible warning. Text/transcript deltas are combined over 100 ms and drained before `TurnComplete`, avoiding a separate UI runnable for each word. `PlaybackBufferedMilliseconds()` reads the software queue without native audio access. The test AIA enables microphone muting during assistant speech as its baseline to reduce feedback-triggered interruptions, while the extension's existing mute default remains false.
 
-## Phase 5: validation and limits
+## Phase 5: language configuration
+
+Version 5 adds runtime `InputLanguageCodes`, `ReplyLanguage`, `TranscriptionLanguageHints`, and `SetLanguages(list, replyCode)` blocks. Codes are normalized/deduplicated, malformed lists and multiple fixed reply languages are rejected, and dynamic list updates leave previous settings unchanged on validation failure. The AIA starts with Malayalam/English (`ml-IN,en-IN`) and `auto` replies. Configuration changes apply on reconnect; the current socket's immutable setup is not silently replaced.
+
+The current official Python SDK describes `AudioTranscriptionConfig.language_codes` as BCP-47 hints. The public v1beta protobuf still represents transcription configuration as an empty message; field availability can vary by backend/model. The checkbox provides an explicit fallback that omits the hints field while retaining expected-input and reply-language instructions. These settings do not constitute strict speech recognition exclusion. No unsupported native speech synthesis language field is added. SDK hint acceptance, Malayalam/English recognition, mixed-language behavior, and reply compliance require real-key/device validation.
+
+## Phase 6: validation and limits
 
 The reproducible build uses genuine MIT annotation processors and extension packaging tools. It checks that generated extension metadata contains both required permissions and that the package contains valid DEX bytecode. Runtime tests execute the production extension bytecode with deterministic Android/App Inventor doubles. They test asynchronous permission and lifecycle behavior, not real hardware.
 
-Final validation passed: authentic Java compilation, official component metadata generation, DEX packaging, **53 transport tests, and 58 runtime tests** (111 passed, 0 failed). Image tests cover protocol shape, worker placement, resizing, orientation, byte budgets, cleanup, failures, pending reservations, disconnection/replacement, writer rejection, and camera activity lifecycle. Playback tests prove retention of a fifteen-second burst, complete partial writes, responsive controls while native speaker/recorder cleanup is blocked, bounded overflow, jitter priming, lossless transcript batching, stale-callback suppression, and bounded raw diagnostics. All original public block signatures were retained. `dist/validation-results.json` ties this result to the final source and `.aix` SHA-256 digests. The AIA passes offline archive and block validation; actual Kodular import/export remains untested.
+Final validation passed: authentic Java compilation, official component metadata generation, DEX packaging, **53 transport tests, and 65 runtime tests** (118 passed, 0 failed). Image tests cover protocol shape, worker placement, resizing, orientation, byte budgets, cleanup, failures, pending reservations, disconnection/replacement, writer rejection, and camera activity lifecycle. Playback tests prove retention of a fifteen-second burst, complete partial writes, responsive controls while native speaker/recorder cleanup is blocked, bounded overflow, jitter priming, lossless transcript batching, stale-callback suppression, and bounded raw diagnostics. All original public block signatures were retained. `dist/validation-results.json` ties this result to the final source and `.aix` SHA-256 digests. The AIA passes offline archive and block validation; actual Kodular import/export remains untested.
 
 The WebSocket tests exercise framing/handshake parsing and concurrent output using local streams. They do not authenticate to Gemini or validate a live TLS connection on an Android device. No API key was available in this task.
 
@@ -94,3 +100,5 @@ Twenty-millisecond capture batches reduce this extension's original capture batc
 - [Google Live client](https://github.com/googleapis/python-genai/blob/main/google/genai/live.py)
 - [Google voices client](https://github.com/googleapis/python-genai/blob/main/google/genai/_gaos/voices.py)
 - [MIT extension template](https://github.com/mit-cml/extension-template)
+
+Language references: [current SDK AudioTranscriptionConfig](https://github.com/googleapis/python-genai/blob/main/google/genai/types.py), [Live setup conversion](https://github.com/googleapis/python-genai/blob/main/google/genai/_live_converters.py), and [public v1beta setup protocol](https://github.com/googleapis/googleapis/blob/master/google/ai/generativelanguage/v1beta/generative_service.proto).

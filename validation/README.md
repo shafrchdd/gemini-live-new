@@ -19,7 +19,7 @@ the verified local tools. Build logs and test bytecode are under `build/`.
 fragmentation, UTF-8, control frames, concurrent writers, handshake validation,
 length limits, malformed frames and cancellation of a blocked socket writer.
 
-`RuntimeTests.java` covers 58 cases: asynchronous APK permission and Companion
+`RuntimeTests.java` covers 65 cases: asynchronous APK permission and Companion
 permission flows, denials and late grants, recorder source fallback, recording
 and effect failures, repeated start/stop, lifecycle cleanup, audio stream
 ordering, queue limits, write watchdog, transcription, tool cancellation,
@@ -34,6 +34,9 @@ UI controls, overflow recovery at the next turn, startup priming, lossless batch
 of 1,000 transcript deltas, and bounded opt-in raw diagnostic events.
 They also cover a stalled native recorder stop without UI blocking and a
 disconnect during batched event delivery suppressing remaining stale callbacks.
+Language cases validate empty/default setup, normalized multiple input codes,
+custom-instruction preservation, hint opt-out, reply-only configuration,
+invalid selections, dynamic Kodular lists and automatic reply-language policy.
 
 `python3 tools/validate_aia.py` checks the test project archive, exact embedded
 extension bytes, native/extension block signatures, event/global scopes,

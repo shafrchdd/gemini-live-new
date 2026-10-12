@@ -339,10 +339,71 @@ public final class RuntimeTests {
         await(new Condition() { public boolean met() { return AudioTrack.totalWrittenFrames.get() == 320; } }); equal(2, AudioTrack.created.get());
       }
     }});
+    languageTests();
     playbackTests();
     imageTests();
     System.out.println("Runtime tests: " + passed + " passed, " + failed + " failed");
     if (failed != 0) throw new AssertionError("Runtime validation failed");
+  }
+
+  private static void languageTests() throws Exception {
+    test("dynamic Kodular language lists support Malayalam English and matching replies", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.SetLanguages(com.google.appinventor.components.runtime.util.YailList.makeList(new Object[] {"ml-IN", "en-IN"}), "auto");
+        JSONObject setup = new JSONObject((String)invoke(f.extension, "makeSetup", new Class<?>[0])).getJSONObject("setup");
+        equal(2, setup.getJSONObject("inputAudioTranscription").getJSONArray("languageCodes").length());
+        check(setup.getJSONObject("systemInstruction").toString().contains("same language"), "Automatic reply selection missing");
+        f.extension.SetLanguages(com.google.appinventor.components.runtime.util.YailList.makeList(new Object[] {"English"}), "auto"); Handler.awaitIdle();
+        check(f.extension.InputLanguageCodes().equals("ml-IN,en-IN"), "Invalid list changed previous settings");
+        equal(1, EventDispatcher.count("Error"));
+      }
+    }});
+    test("empty language settings preserve automatic setup without hints", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        JSONObject setup = new JSONObject((String)invoke(f.extension, "makeSetup", new Class<?>[0])).getJSONObject("setup");
+        equal(0, setup.getJSONObject("inputAudioTranscription").length()); check(!setup.has("systemInstruction"), "Blank language settings changed policy");
+      }
+    }});
+    test("multiple input languages normalize deduplicate and preserve custom instructions", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.InputLanguageCodes(" EN_in, hi-IN,en-IN "); f.extension.ReplyLanguage("hi_in"); f.extension.SystemInstruction("Keep replies short.");
+        JSONObject setup = new JSONObject((String)invoke(f.extension, "makeSetup", new Class<?>[0])).getJSONObject("setup");
+        JSONArray codes = setup.getJSONObject("inputAudioTranscription").getJSONArray("languageCodes"); equal(2, codes.length());
+        check(codes.getString(0).equals("en-IN") && codes.getString(1).equals("hi-IN"), "Language normalization failed");
+        JSONArray parts = setup.getJSONObject("systemInstruction").getJSONArray("parts"); equal(2, parts.length());
+        check(parts.getJSONObject(0).getString("text").equals("Keep replies short."), "Custom instructions replaced");
+        check(parts.getJSONObject(1).getString("text").contains("hi-IN"), "Reply language policy missing");
+        check(!setup.getJSONObject("generationConfig").getJSONObject("speechConfig").has("languageCode"), "Native speech synthesis received an unverified language field");
+      }
+    }});
+    test("language hints can be disabled while reply policy remains", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.InputLanguageCodes("ta-IN"); f.extension.TranscriptionLanguageHints(false);
+        JSONObject setup = new JSONObject((String)invoke(f.extension, "makeSetup", new Class<?>[0])).getJSONObject("setup");
+        equal(0, setup.getJSONObject("inputAudioTranscription").length());
+        check(setup.getJSONObject("systemInstruction").toString().contains("ta-IN"), "Language policy removed with hints");
+      }
+    }});
+    test("single reply language can be configured independently of input hints", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.ReplyLanguage("ml-IN"); JSONObject setup = new JSONObject((String)invoke(f.extension, "makeSetup", new Class<?>[0])).getJSONObject("setup");
+        equal(0, setup.getJSONObject("inputAudioTranscription").length()); check(setup.getJSONObject("systemInstruction").toString().contains("ml-IN"), "Reply-only setting ignored");
+      }
+    }});
+    test("invalid language selection rejects setup before opening another connection", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.InputLanguageCodes("English,hi-IN"); f.extension.Connect("test-key"); Handler.awaitIdle();
+        equal(1, EventDispatcher.count("Error")); check(get(f.extension, "session") == f.session, "Invalid language started replacement session");
+        check(errorContains("Use language codes"), "Language error not actionable");
+      }
+    }});
+    test("reply language lists and excessive input language counts are rejected", new Test() { public void run() throws Exception {
+      try (Fixture f = new Fixture(true, true)) {
+        f.extension.ReplyLanguage("en-IN,hi-IN"); f.extension.Connect("test-key"); Handler.awaitIdle(); check(errorContains("one reply language"), "Multiple reply languages accepted");
+        f.extension.ReplyLanguage(""); f.extension.InputLanguageCodes("en,hi,ta,ml,te,kn,mr,bn,gu"); f.extension.Connect("test-key"); Handler.awaitIdle();
+        check(errorContains("eight input languages"), "Unbounded language list accepted"); equal(2, EventDispatcher.count("Error"));
+      }
+    }});
   }
 
   private static void playbackTests() throws Exception {

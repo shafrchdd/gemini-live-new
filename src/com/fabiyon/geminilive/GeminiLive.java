@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@DesignerComponent(version=4, description="Direct Gemini Live client with microphone streaming, photo and text input, safe session cleanup, and bounded media queues.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
+@DesignerComponent(version=5, description="Direct Gemini Live client with microphone streaming, photo and text input, safe session cleanup, and bounded media queues.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.INTERNET,android.permission.RECORD_AUDIO")
 public class GeminiLive extends AndroidNonvisibleComponent implements OnStopListener, OnDestroyListener, Deleteable {
@@ -60,6 +60,9 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   private volatile String model = "gemini-3.8-live";
   private volatile String voice = "Puck";
   private volatile String systemInstruction = "";
+  private volatile String inputLanguageCodes = "";
+  private volatile String replyLanguage = "";
+  private volatile boolean transcriptionLanguageHints = true;
   private volatile boolean echoCancellation = true;
   private volatile boolean noiseSuppression = true;
   private volatile boolean muteMicWhileSpeaking;
@@ -108,6 +111,65 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
   @DesignerProperty(editorType="textArea", defaultValue="")
   @SimpleProperty(category=PropertyCategory.BEHAVIOR)
   public void SystemInstruction(String value) { systemInstruction = value == null ? "" : value; }
+
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Comma-separated input language codes for the next connection, e.g. en-IN,hi-IN. Empty keeps automatic detection. Hints and model instructions cannot guarantee exclusive recognition.")
+  public String InputLanguageCodes() { return inputLanguageCodes; }
+  @DesignerProperty(editorType="string", defaultValue="")
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR)
+  public void InputLanguageCodes(String value) { inputLanguageCodes = value == null ? "" : value.trim(); }
+
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Reply code for the next connection, e.g. ml-IN, or auto to match the spoken input among selected languages. Empty uses the first input language when configured. Applied through model instructions.")
+  public String ReplyLanguage() { return replyLanguage; }
+  @DesignerProperty(editorType="string", defaultValue="")
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR)
+  public void ReplyLanguage(String value) { replyLanguage = value == null ? "" : value.trim(); }
+
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Send current SDK inputAudioTranscription.languageCodes hints when input languages are configured. Disable if your model/API rejects this field; language instructions still apply. Reconnect after changing.")
+  public boolean TranscriptionLanguageHints() { return transcriptionLanguageHints; }
+  @DesignerProperty(editorType="boolean", defaultValue="True")
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR)
+  public void TranscriptionLanguageHints(boolean value) { transcriptionLanguageHints = value; }
+
+  @SimpleFunction(description="Set input languages from a Kodular list of codes, e.g. [ml-IN, en-IN], and a reply code or auto. Changes apply after reconnecting. Invalid selections leave previous settings unchanged. Recognition hints are not a strict language whitelist.")
+  public void SetLanguages(YailList inputLanguages, String replyLanguageCode) {
+    try {
+      if (inputLanguages == null || inputLanguages.size() > 8) throw new IllegalArgumentException("Provide a list of at most eight language codes");
+      StringBuilder value = new StringBuilder();
+      for (Object item : inputLanguages.toArray()) {
+        if (value.length() > 0) value.append(',');
+        value.append(String.valueOf(item));
+      }
+      List<String> normalized = languageCodes(value.toString());
+      String reply = replyLanguageCode == null ? "" : replyLanguageCode.trim();
+      if (!reply.equalsIgnoreCase("auto") && languageCodes(reply).size() > 1) throw new IllegalArgumentException("Choose one reply language or auto");
+      StringBuilder codes = new StringBuilder();
+      for (String code : normalized) { if (codes.length() > 0) codes.append(','); codes.append(code); }
+      inputLanguageCodes = codes.toString();
+      replyLanguage = reply;
+    } catch (Exception e) { Error("SetLanguages: " + detail(e, null)); }
+  }
+
+  private static List<String> languageCodes(String value) {
+    LinkedHashSet<String> codes = new LinkedHashSet<String>();
+    if (value == null || value.trim().isEmpty()) return new ArrayList<String>();
+    if (value.length() > 256) throw new IllegalArgumentException("Language codes exceed 256 characters");
+    for (String item : value.split(",", -1)) {
+      String code = item.trim().replace('_', '-');
+      if (!code.matches("[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*"))
+        throw new IllegalArgumentException("Use language codes such as en-IN, hi-IN, ta-IN or ml-IN; invalid code: " + code);
+      String[] parts = code.split("-");
+      StringBuilder normal = new StringBuilder(parts[0].toLowerCase(Locale.US));
+      for (int i = 1; i < parts.length; i++) {
+        String part = parts[i].toLowerCase(Locale.US);
+        if (part.matches("[a-z]{2}")) part = part.toUpperCase(Locale.US);
+        else if (part.matches("[a-z]{4}")) part = part.substring(0, 1).toUpperCase(Locale.US) + part.substring(1);
+        normal.append('-').append(part);
+      }
+      codes.add(normal.toString());
+      if (codes.size() > 8) throw new IllegalArgumentException("Select at most eight input languages");
+    }
+    return new ArrayList<String>(codes);
+  }
 
   @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Enable device acoustic echo cancellation for the next microphone start, when supported.")
   public boolean EchoCancellation() { return echoCancellation; }
@@ -679,8 +741,24 @@ public class GeminiLive extends AndroidNonvisibleComponent implements OnStopList
     JSONObject body = new JSONObject().put("model", "models/" + model)
         .put("generationConfig", new JSONObject().put("responseModalities", new JSONArray().put("AUDIO")).put("speechConfig", speech))
         .put("inputAudioTranscription", new JSONObject()).put("outputAudioTranscription", new JSONObject());
+    List<String> inputs = languageCodes(inputLanguageCodes);
+    boolean matchInputLanguage = replyLanguage.equalsIgnoreCase("auto");
+    List<String> replies = matchInputLanguage ? new ArrayList<String>() : languageCodes(replyLanguage);
+    if (replies.size() > 1) throw new IllegalArgumentException("Choose one reply language");
+    String reply = matchInputLanguage ? "" : (replies.isEmpty() ? (inputs.isEmpty() ? "" : inputs.get(0)) : replies.get(0));
+    if (transcriptionLanguageHints && !inputs.isEmpty())
+      body.put("inputAudioTranscription", new JSONObject().put("languageCodes", new JSONArray(inputs)));
+    JSONArray instructions = new JSONArray();
     String instruction = systemInstruction;
-    if (!instruction.trim().isEmpty()) body.put("systemInstruction", new JSONObject().put("parts", new JSONArray().put(new JSONObject().put("text", instruction))));
+    if (!instruction.trim().isEmpty()) instructions.put(new JSONObject().put("text", instruction));
+    StringBuilder policy = new StringBuilder();
+    if (!inputs.isEmpty()) policy.append("For this session, the expected spoken input languages are these BCP-47 codes: ")
+        .append(inputs.toString()).append(". Interpret speech only in these languages. Do not switch to another language or translate the user's words merely because a short or noisy utterance sounds ambiguous. If the utterance is unclear or appears outside these languages, ask the user to repeat in one of the configured languages rather than guessing. ");
+    if (!reply.isEmpty()) policy.append("Speak and write all assistant replies exclusively in the language identified by BCP-47 code ")
+        .append(reply).append(". Use its normal writing system. Do not change the reply language based on automatic language detection. ");
+    if (matchInputLanguage) policy.append("Reply in the same language as the user's current utterance, choosing only among the configured input languages when present. Use that language's normal writing system. For ambiguous mixed-language speech, ask for clarification instead of guessing a different language. ");
+    if (policy.length() > 0) instructions.put(new JSONObject().put("text", policy.toString()));
+    if (instructions.length() > 0) body.put("systemInstruction", new JSONObject().put("parts", instructions));
     JSONObject tool = declarationSnapshot();
     if (tool.getJSONArray("functionDeclarations").length() > 0) body.put("tools", new JSONArray().put(tool));
     return new JSONObject().put("setup", body).toString();

@@ -512,6 +512,11 @@ def main():
             require(("GeminiLive1", "PlaybackBufferedMilliseconds") in methods(events["PlaybackClock", "Timer"]), "Playback meter is not wired")
             require(str(components["PlaybackClock"]["designer"].get("TimerAlwaysFires", "")).lower() == "false", "Playback meter must stop in background")
             require(str(components["MuteCheck"]["designer"].get("Checked", "")).lower() == "true", "Playback diagnostic baseline should mute microphone during AI speech")
+        if int(info["version"]) >= 5:
+            setters = [child(item, "mutation") for item in descendants(events["ConnectButton", "Click"], "component_set_get")]
+            for property_ in ("InputLanguageCodes", "ReplyLanguage", "TranscriptionLanguageHints"):
+                require(any(m.get("instance_name") == "GeminiLive1" and m.get("property_name") == property_
+                            and m.get("set_or_get") == "set" for m in setters), "Missing language setup block: " + property_)
         print("PASS AIA structure, current extension payload, authentic component signatures, variable scopes, enabled blocks, permission/error handlers and connection/listening workflow")
         print(json.dumps({"aia": str(args.aia), "components": len(components), "blocks": len(all_blocks),
                           "events": len(events), "sha256": hashlib.sha256(args.aia.read_bytes()).hexdigest(),

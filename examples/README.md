@@ -2,7 +2,11 @@
 
 [Download GeminiLiveTest.aia](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia)
 
-In Kodular Creator, use **Projects → Import project (.aia) from my computer**, then select this file. It includes the compiled GeminiLive version 4 extension and the complete screen/blocks; you do not need to import the `.aix` separately.
+In Kodular Creator, use **Projects → Import project (.aia) from my computer**, then select this file. It includes the compiled GeminiLive version 5 extension and the complete screen/blocks; you do not need to import the `.aix` separately.
+
+The **Languages** inputs start with `ml-IN,en-IN` (Malayalam and English) and reply setting `auto` (match the current utterance within the selected languages). Edit the codes to choose multiple languages dynamically. Use a single reply code such as `ml-IN` to request Malayalam replies consistently. After changes, tap **Disconnect**, then **Connect**; setup languages cannot be changed inside the existing connection. Blank input codes keep automatic recognition; a blank reply code uses the first selected input language.
+
+The **Use transcription language hints** checkbox sends the current SDK's recognition hints. If setup reports an unsupported `languageCodes` field, uncheck it and reconnect: the language instructions remain active. Hints guide recognition but cannot strictly block other languages, and model reply-language compliance needs a live phone test. In your own Kodular project, `SetLanguages` accepts a dynamically built list such as `[ml-IN, en-IN]` plus `auto`; call it before reconnecting.
 
 To test an image with a prompt:
 

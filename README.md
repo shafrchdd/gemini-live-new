@@ -1,12 +1,12 @@
 # GeminiLive for Kodular
 
-This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. Version 4 fixes playback skips and UI-blocking audio controls, and retains photo/text input.
+This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. Version 5 adds configurable input and reply languages while retaining playback fixes, photo input, and tool calling.
 
 Downloads:
 
 - [Kodular test project (.aia)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia) — extension and example blocks included; [usage instructions](examples/README.md).
 - [Compiled Kodular extension (.aix)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/com.fabiyon.geminilive.aix)
-- [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v4.zip)
+- [Complete source and build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/GeminiLive-v5.zip)
 - [Java source](src/com/fabiyon/geminilive/GeminiLive.java)
 - [Audit and device checklist](docs/AUDIT.md)
 
@@ -29,6 +29,10 @@ For vision, use `Camera.TakePicture` or `ImagePicker`, keep the returned image p
 `SendImage` prepares the photo on a separate worker, reads at most 20 MiB, corrects EXIF orientation, and creates a JPEG up to 1024 pixels on its longest edge and 512 KiB. It accepts assets, accessible local paths, `file://`, and granted `content://` URIs. Camera/picker components handle their Android permissions; the extension does not bypass scoped storage. It sends a realtime image frame and its prompt consecutively, using the current Live cookbook protocol. Server processing order across media streams is not guaranteed. `ImageSent(imagePath)` confirms both network writes, not Gemini acknowledgment. `IsSendingImage()` covers preparation and transmission; only one photo can be pending per session. Wait for completion before sending other text if turn order matters.
 
 `MicrophoneLevel()` reports the latest captured peak, from 0 to 100. While speaking near the phone, a consistently zero level plus the zero-sample diagnostic suggests a device capture/privacy/route issue. Check Android's microphone privacy switch, this APK's microphone permission, and competing recording apps. Optional acoustic echo cancellation and noise suppression depend on the device; disable those properties before another microphone start if investigating device-specific effects.
+
+For languages, set `InputLanguageCodes` to comma-separated codes such as `ml-IN,en-IN`. Set `ReplyLanguage` to `auto` to reply in the same selected language as the current utterance, or to one code such as `ml-IN` to request Malayalam replies every time. You can change these properties at runtime; disconnect and reconnect to apply them to the Live session. `SetLanguages(a Kodular list of codes, reply code or auto)` also accepts dynamically constructed lists of up to eight codes. The example starts with Malayalam and English and `auto` replies. Empty input codes retain automatic recognition; empty reply code prefers the first selected input language.
+
+The current Google SDK exposes `inputAudioTranscription.languageCodes` as **hints**, not an exclusive recognition whitelist. `TranscriptionLanguageHints` controls sending this field; disable it if the API/model rejects setup, while keeping the language policy instructions. Reply language and expected-input instructions are appended to your system instruction; the native model's recognition and compliance cannot be guaranteed. Strict exclusion of every other spoken language requires a separate speech-recognition path with language restrictions. No separate recognizer is included here.
 
 `RawMessagesEnabled` now defaults to false. Set it explicitly to false in existing projects, which can retain the earlier saved value. Opt-in raw diagnostics are capped at four queued events and 256 KiB per message; excess diagnostics produce one warning per session. Normal audio delivery continues. Transcript/text deltas are combined for up to 100 ms, retaining their concatenated content and delivering the final text before `TurnComplete`.
 

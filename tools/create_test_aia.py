@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a deterministic Kodular test project containing GeminiLive v4.
+"""Generate a deterministic Kodular test project containing GeminiLive v5.
 
 Uses a known Kodular export baseline and canonical component Blockly XML.
 No API key is stored in the project. Extension assets are copied byte-for-byte
@@ -25,7 +25,7 @@ LANGUAGE_VERSION = "29"
 VERSIONS = {
     "Form": "42", "VerticalArrangement": "10", "HorizontalArrangement": "10",
     "Label": "10", "Button": "13", "CheckBox": "6", "Clock": "4",
-    "TextBox": "13", "Camera": "4", "ImagePicker": "12", "Image": "7", EXTENSION: "4",
+    "TextBox": "13", "Camera": "4", "ImagePicker": "12", "Image": "7", EXTENSION: "5",
 }
 
 
@@ -255,7 +255,7 @@ class ProjectBuilder:
         button = lambda name, text, enabled=True: c(name, "Button", Text=text,
                                                    Enabled="True" if enabled else "False", FontSize="15")
         children = [
-            label("HeadingLabel", "Gemini Live v4 - microphone and photo test", FontSize="22", FontBold="True"),
+            label("HeadingLabel", "Gemini Live v5 - microphone and photo test", FontSize="22", FontBold="True"),
             label("InstructionsLabel", "For a photo: take or choose it first, uncheck automatic listening, then Connect and Send photo. Opening the camera or gallery disconnects Live; reconnect after returning. Auto listen waits for SetupComplete. Compare Companion and a freshly built APK.", FontSize="14"),
             label("ApiKeyLabel", "API key (not saved)", FontBold="True"),
             c("ApiKeyInput", "TextBox", Text="", InputType="2", Hint="Enter your Gemini API key", Width="-2", FontSize="16"),
@@ -263,6 +263,11 @@ class ProjectBuilder:
             c("ModelInput", "TextBox", Text="gemini-3.8-live", Hint="A Live model available to your key", Width="-2", FontSize="16"),
             label("VoiceLabel", "Prebuilt voice", FontBold="True"),
             c("VoiceInput", "TextBox", Text="Puck", Hint="For example, Puck", Width="-2", FontSize="16"),
+            label("LanguageHeadingLabel", "Languages - reconnect after changes", FontBold="True"),
+            c("InputLanguagesInput", "TextBox", Text="ml-IN,en-IN", Hint="Input codes, e.g. ml-IN,en-IN (blank = automatic)", Width="-2"),
+            c("ReplyLanguageInput", "TextBox", Text="auto", Hint="auto = match input, or a reply code such as ml-IN", Width="-2"),
+            c("LanguageHintsCheck", "CheckBox", Text="Use transcription language hints (disable if setup rejects them)", Checked="True", Width="-2"),
+            label("LanguageHelpLabel", "Codes: en-IN English, hi-IN Hindi, ta-IN Tamil, ml-IN Malayalam, te-IN Telugu, kn-IN Kannada. Input hints guide recognition; they cannot strictly block all other languages."),
             label("PhotoHeadingLabel", "Photo test - select before Connect", FontBold="True"),
             c("PhotoRow", "HorizontalArrangement", children=[
                 button("CameraButton", "Take photo"),
@@ -312,7 +317,7 @@ class ProjectBuilder:
                       RawMessagesEnabled="False", EchoCancellation="True", NoiseSuppression="True",
                       MuteMicWhileSpeaking="True", AudioEnabled="True", Volume="100")
         props = {"$Name": "Screen1", "$Type": "Form", "$Version": VERSIONS["Form"], "Uuid": "0",
-                 "AppName": "Gemini Live Test v4", "Title": "Gemini Live Test v4", "Scrollable": "True",
+                 "AppName": "Gemini Live Test v5", "Title": "Gemini Live Test v5", "Scrollable": "True",
                  "Sizing": "Responsive", "BackgroundColor": "&HFFFFFFFF", "ShowListsAsJson": "True",
                  "Theme": "AppTheme.Light.DarkActionBar", "PrimaryColor": "&HFF245A81",
                  "PrimaryColorDark": "&HFF153951", "AccentColor": "&HFF007D77",
@@ -344,6 +349,9 @@ class ProjectBuilder:
              self.enabled("SendImageButton", False),
              self.prop("GeminiLive1", "Model", self.prop("ModelInput", "Text")),
              self.prop("GeminiLive1", "Voice", self.prop("VoiceInput", "Text")),
+             self.prop("GeminiLive1", "InputLanguageCodes", self.trim(self.prop("InputLanguagesInput", "Text"))),
+             self.prop("GeminiLive1", "ReplyLanguage", self.trim(self.prop("ReplyLanguageInput", "Text"))),
+             self.prop("GeminiLive1", "TranscriptionLanguageHints", self.prop("LanguageHintsCheck", "Checked")),
              self.prop("GeminiLive1", "SystemInstruction", self.literal("You are a helpful voice assistant. Keep replies brief.")),
              self.method("Screen1", "HideKeyboard"),
              self.global_variable("toolCallId", self.literal("")),
@@ -489,8 +497,8 @@ def main():
     bky = builder.blocks()
     properties = "\n".join([
         "main=" + PACKAGE + ".Screen1", "name=" + PROJECT, "assets=../assets", "source=../src",
-        "build=../build", "icon=", "versioncode=4", "versionname=4.0", "useslocation=False",
-        "aname=Gemini Live Test v4", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
+        "build=../build", "icon=", "versioncode=5", "versionname=5.0", "useslocation=False",
+        "aname=Gemini Live Test v5", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
         "showlistsasjson=True", "theme=AppTheme.Light.DarkActionBar", "color.primary=&HFF245A81",
         "color.primary.dark=&HFF153951", "color.accent=&HFF007D77", "",
     ])

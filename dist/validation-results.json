@@ -1,7 +1,7 @@
 {
-  "source_sha256": "89c4acca6f81332a46aa036cbaaaa05392ec6908fe16b06477812513a0b22b61",
-  "aix_sha256": "381bc0af19e07b490b312b5c22b4d9a81222904e07891f47fba44b29e493569d",
-  "verified_at_utc": "2026-10-11T19:27:19.486238+00:00",
+  "source_sha256": "5551c42ce3b1d2f4084c293b4f3eecfeba10b4042d6d1be3a8cbe4e84a4920ff",
+  "aix_sha256": "55882534c863c02c83493289d59ca8ace9b3b335d1af55765b9cd18648a0f36e",
+  "verified_at_utc": "2026-10-12T05:27:26.577582+00:00",
   "java_source_target": 7,
   "authentic_android_appinventor_compile": "passed",
   "official_metadata_and_dex_packaging": "passed",
@@ -14,13 +14,13 @@
     "failed": 0
   },
   "runtime_tests": {
-    "passed": 58,
+    "passed": 65,
     "failed": 0
   },
   "physical_device_test": "not_run",
   "authenticated_live_api_test": "not_run",
-  "extension_version": 4,
-  "aia_sha256": "937f4bb099fbfa87ab6feb73f70e078ab09d0439e92057142637bb5044826e96",
+  "extension_version": 5,
+  "aia_sha256": "721d07d4b5395cb0d01910a3ead05505b1e2cd9ce0c76395b2f865735407aff6",
   "aia_structure_and_blocks": "passed",
   "kodular_import_test": "not_run",
   "kodular_apk_build_test": "not_run"
