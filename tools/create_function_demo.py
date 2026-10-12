@@ -25,7 +25,7 @@ class Demo(ProjectBuilder):
   button('ReplyButton','Return function result',False);label('ResponseLabel','');label('ErrorLabel','')
   panel=c('MainPanel','VerticalArrangement',children=children,Width='-2')
   ext=c('GeminiLive1','GeminiLive',AudioEnabled='True',Voice='Puck',RawMessagesEnabled='False')
-  screen={'$Name':'Screen1','$Type':'Form','$Version':'42','Uuid':'0','Title':'Gemini Function Demo','AppName':'Gemini Function Demo','Scrollable':'True','Sizing':'Responsive','ShowListsAsJson':'True','$Components':[panel,ext]}
+  screen={'$Name':'Screen1','$Type':'Form','$Version':'42','Uuid':'0','Title':'Gemini Function Demo','AppName':'Gemini Function Demo','Scrollable':'True','Sizing':'Responsive','Theme':'AppTheme.Light.DarkActionBar','PrimaryColor':'&HFF245A81','PrimaryColorDark':'&HFF153951','AccentColor':'&HFF007D77','ShowListsAsJson':'True','$Components':[panel,ext]}
   return '#|\n$JSON\n'+json.dumps({'authURL':['creator.kodular.io'],'YaVersion':YA_VERSION,'Source':'Form','Properties':screen},separators=(',',':'))+'\n|#\n'
  def blocks(self):
   for i,n in enumerate(['callId','callName']):self.declare_global(n,self.literal(''),40+i*450)
@@ -48,7 +48,7 @@ def main():
  parser=argparse.ArgumentParser();parser.add_argument('aix',type=Path);args=parser.parse_args()
  with zipfile.ZipFile(args.aix) as z:
   info=json.loads(z.read('com.fabiyon.geminilive/components.json'))[0];VERSIONS['GeminiLive']=str(info['version']);assets={'assets/external_comps/'+n:z.read(n) for n in z.namelist() if not n.endswith('/')}
- b=Demo();b.supported_events={e['name'] for e in info['events']};package='appinventor.ai_shafrchdd.GeminiFunctionDemo';source='src/'+package.replace('.','/')+'/Screen1';entries={source+'.scm':b.screen().encode(),source+'.bky':b.blocks().encode(),'youngandroidproject/project.properties':('\n'.join(['main='+package+'.Screen1','name=GeminiFunctionDemo','assets=../assets','source=../src','build=../build','versioncode=1','versionname=1.0','useslocation=False','aname=Gemini Function Demo','androidminsdk=23','sizing=Responsive','showlistsasjson=True','theme=AppTheme.Light.DarkActionBar',''])).encode()}
+ b=Demo();b.supported_events={e['name'] for e in info['events']};package='appinventor.ai_shafrchdd.GeminiFunctionDemo';source='src/'+package.replace('.','/')+'/Screen1';entries={source+'.scm':b.screen().encode(),source+'.bky':b.blocks().encode(),'youngandroidproject/project.properties':('\n'.join(['main='+package+'.Screen1','name=GeminiFunctionDemo','assets=../assets','source=../src','build=../build','versioncode=1','versionname=1.0','useslocation=False','aname=Gemini Function Demo','androidminsdk=23','sizing=Responsive','showlistsasjson=True','theme=AppTheme.Light.DarkActionBar','color.primary=&HFF245A81','color.primary.dark=&HFF153951','color.accent=&HFF007D77',''])).encode()}
  for n,data in entries.items():p=ROOT/'examples/function-demo/project'/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(data)
  entries.update(assets);output=ROOT/'examples/GeminiFunctionDemo.aia'
  with zipfile.ZipFile(output,'w',zipfile.ZIP_DEFLATED) as z:

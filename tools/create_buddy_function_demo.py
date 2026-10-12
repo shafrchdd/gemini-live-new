@@ -33,7 +33,7 @@ class Demo(ProjectBuilder):
   ext=c('GeminiLive1','GeminiLive',Voice='Puck',AudioEnabled='True',RawMessagesEnabled='False')
   buddy=c('DeskBuddy1','DeskBuddy',ShowBatteryIcon='False',ShowWifiIcon='False',Autonomous='False')
   web=c('Json1','Web')
-  return '#|\n$JSON\n'+json.dumps({'authURL':['creator.kodular.io'],'YaVersion':YA_VERSION,'Source':'Form','Properties':{'$Name':'Screen1','$Type':'Form','$Version':'42','Uuid':'0','Title':'Gemini Buddy Functions','AppName':'Gemini Buddy Functions','Scrollable':'True','Sizing':'Responsive','BackgroundColor':'&HFF000000','ShowListsAsJson':'True','$Components':[panel,ext,buddy,web]}},separators=(',',':'))+'\n|#\n'
+  return '#|\n$JSON\n'+json.dumps({'authURL':['creator.kodular.io'],'YaVersion':YA_VERSION,'Source':'Form','Properties':{'$Name':'Screen1','$Type':'Form','$Version':'42','Uuid':'0','Title':'Gemini Buddy Functions','AppName':'Gemini Buddy Functions','Scrollable':'True','Sizing':'Responsive','Theme':'AppTheme.Light.DarkActionBar','PrimaryColor':'&HFF245A81','PrimaryColorDark':'&HFF153951','AccentColor':'&HFF007D77','BackgroundColor':'&HFF000000','ShowListsAsJson':'True','$Components':[panel,ext,buddy,web]}},separators=(',',':'))+'\n|#\n'
  def controls(self,on):return [self.enabled(n,on) for n in ['SendButton','EmotionButton','ReactionButton']]
  def blocks(self):
   for i,(n,val) in enumerate([('args',''),('value',''),('actionError',''),('result','')]):self.declare_global(n,self.literal(val),40+i*450)
@@ -70,7 +70,7 @@ def main():
      if Path(n).is_absolute() or '..' in Path(n).parts:raise ValueError('Unsafe extension path')
      assets['assets/external_comps/'+n]=z.read(n)
  VERSIONS['Web']='6';b=Demo();b.catalog=json.loads((ROOT/'docs/DeskBuddy-catalog.json').read_text());package='appinventor.ai_shafrchdd.GeminiBuddyFunctions';source='src/'+package.replace('.','/')+'/Screen1'
- entries={source+'.scm':b.screen().encode(),source+'.bky':b.blocks().encode(),'youngandroidproject/project.properties':('\n'.join(['main='+package+'.Screen1','name=GeminiBuddyFunctions','assets=../assets','source=../src','build=../build','versioncode=1','versionname=1.0','useslocation=False','aname=Gemini Buddy Functions','androidminsdk=23','sizing=Responsive','showlistsasjson=True','theme=AppTheme.Light.DarkActionBar',''])).encode()}
+ entries={source+'.scm':b.screen().encode(),source+'.bky':b.blocks().encode(),'youngandroidproject/project.properties':('\n'.join(['main='+package+'.Screen1','name=GeminiBuddyFunctions','assets=../assets','source=../src','build=../build','versioncode=1','versionname=1.0','useslocation=False','aname=Gemini Buddy Functions','androidminsdk=23','sizing=Responsive','showlistsasjson=True','theme=AppTheme.Light.DarkActionBar','color.primary=&HFF245A81','color.primary.dark=&HFF153951','color.accent=&HFF007D77',''])).encode()}
  for n,data in entries.items():
   target=ROOT/'examples/buddy-functions/project'/n;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
  entries.update(assets);output=ROOT/'examples/GeminiBuddyFunctions.aia'
