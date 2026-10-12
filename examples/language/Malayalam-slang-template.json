@@ -1,0 +1,1295 @@
+{
+  "version": 1,
+  "purpose": "User-editable examples for a Malayalam desk companion. Only English is filled; the user supplies normal Malayalam and local slang.",
+  "dialect_label": "",
+  "rules": {
+    "use_only_completed_slang_examples": true,
+    "blank_slang_means_no_preferred_variant": true,
+    "apply_examples_by_meaning_and_context_not_global_word_replacement": true,
+    "prefer_sentence_examples_over_isolated_word_examples": true,
+    "preserve_user_selected_language": true,
+    "do_not_read_this_dataset_or_keys_aloud": true
+  },
+  "entries": [
+    {
+      "id": "pronouns_and_address_01",
+      "category": "pronouns_and_address",
+      "english": "you",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_02",
+      "category": "pronouns_and_address",
+      "english": "to you / for you",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_03",
+      "category": "pronouns_and_address",
+      "english": "your",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_04",
+      "category": "pronouns_and_address",
+      "english": "yours",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_05",
+      "category": "pronouns_and_address",
+      "english": "with you",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_06",
+      "category": "pronouns_and_address",
+      "english": "I",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_07",
+      "category": "pronouns_and_address",
+      "english": "me",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_08",
+      "category": "pronouns_and_address",
+      "english": "to me / for me",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_09",
+      "category": "pronouns_and_address",
+      "english": "my",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_10",
+      "category": "pronouns_and_address",
+      "english": "mine",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_11",
+      "category": "pronouns_and_address",
+      "english": "with me",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_12",
+      "category": "pronouns_and_address",
+      "english": "we",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_13",
+      "category": "pronouns_and_address",
+      "english": "us",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_14",
+      "category": "pronouns_and_address",
+      "english": "our",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_15",
+      "category": "pronouns_and_address",
+      "english": "he",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_16",
+      "category": "pronouns_and_address",
+      "english": "she",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_17",
+      "category": "pronouns_and_address",
+      "english": "they",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_18",
+      "category": "pronouns_and_address",
+      "english": "friend",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "pronouns_and_address_19",
+      "category": "pronouns_and_address",
+      "english": "buddy",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_01",
+      "category": "common_words",
+      "english": "yes",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_02",
+      "category": "common_words",
+      "english": "no",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_03",
+      "category": "common_words",
+      "english": "okay",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_04",
+      "category": "common_words",
+      "english": "please",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_05",
+      "category": "common_words",
+      "english": "thank you",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_06",
+      "category": "common_words",
+      "english": "sorry",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_07",
+      "category": "common_words",
+      "english": "what",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_08",
+      "category": "common_words",
+      "english": "why",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_09",
+      "category": "common_words",
+      "english": "when",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_10",
+      "category": "common_words",
+      "english": "where",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_11",
+      "category": "common_words",
+      "english": "who",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_12",
+      "category": "common_words",
+      "english": "how",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_13",
+      "category": "common_words",
+      "english": "now",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_14",
+      "category": "common_words",
+      "english": "later",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_15",
+      "category": "common_words",
+      "english": "today",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_16",
+      "category": "common_words",
+      "english": "tomorrow",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_17",
+      "category": "common_words",
+      "english": "yesterday",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_18",
+      "category": "common_words",
+      "english": "here",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_19",
+      "category": "common_words",
+      "english": "there",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_20",
+      "category": "common_words",
+      "english": "again",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_21",
+      "category": "common_words",
+      "english": "enough",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_22",
+      "category": "common_words",
+      "english": "really",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_23",
+      "category": "common_words",
+      "english": "maybe",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "common_words_24",
+      "category": "common_words",
+      "english": "a little",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_01",
+      "category": "greetings",
+      "english": "Hi!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_02",
+      "category": "greetings",
+      "english": "Good morning!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_03",
+      "category": "greetings",
+      "english": "Good night!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_04",
+      "category": "greetings",
+      "english": "How are you?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_05",
+      "category": "greetings",
+      "english": "How was your day?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_06",
+      "category": "greetings",
+      "english": "What are you doing?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_07",
+      "category": "greetings",
+      "english": "Where are you going?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_08",
+      "category": "greetings",
+      "english": "Welcome back!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_09",
+      "category": "greetings",
+      "english": "Nice to meet you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_10",
+      "category": "greetings",
+      "english": "See you later.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "greetings_11",
+      "category": "greetings",
+      "english": "Talk to you tomorrow.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_01",
+      "category": "questions",
+      "english": "What happened?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_02",
+      "category": "questions",
+      "english": "What do you mean?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_03",
+      "category": "questions",
+      "english": "Can you say that again?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_04",
+      "category": "questions",
+      "english": "Can you explain it a little?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_05",
+      "category": "questions",
+      "english": "What do you think?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_06",
+      "category": "questions",
+      "english": "Do you like it?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_07",
+      "category": "questions",
+      "english": "Are you okay?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_08",
+      "category": "questions",
+      "english": "Did you eat?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_09",
+      "category": "questions",
+      "english": "Are you tired?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_10",
+      "category": "questions",
+      "english": "Are you busy?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_11",
+      "category": "questions",
+      "english": "Do you want some help?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_12",
+      "category": "questions",
+      "english": "What should we do now?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_13",
+      "category": "questions",
+      "english": "What is your name?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "questions_14",
+      "category": "questions",
+      "english": "What would you like to talk about?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_01",
+      "category": "everyday_replies",
+      "english": "I am fine.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_02",
+      "category": "everyday_replies",
+      "english": "I am here.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_03",
+      "category": "everyday_replies",
+      "english": "I am listening.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_04",
+      "category": "everyday_replies",
+      "english": "Tell me.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_05",
+      "category": "everyday_replies",
+      "english": "I understand.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_06",
+      "category": "everyday_replies",
+      "english": "I do not understand.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_07",
+      "category": "everyday_replies",
+      "english": "I do not know.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_08",
+      "category": "everyday_replies",
+      "english": "I think so.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_09",
+      "category": "everyday_replies",
+      "english": "You are right.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_10",
+      "category": "everyday_replies",
+      "english": "I agree with you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_11",
+      "category": "everyday_replies",
+      "english": "I am not sure.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_12",
+      "category": "everyday_replies",
+      "english": "That makes sense.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_13",
+      "category": "everyday_replies",
+      "english": "Let us try again.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_14",
+      "category": "everyday_replies",
+      "english": "Wait a moment.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_15",
+      "category": "everyday_replies",
+      "english": "Take your time.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_16",
+      "category": "everyday_replies",
+      "english": "No problem.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_17",
+      "category": "everyday_replies",
+      "english": "It is okay.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_18",
+      "category": "everyday_replies",
+      "english": "I will help you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "everyday_replies_19",
+      "category": "everyday_replies",
+      "english": "Let us do it together.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_01",
+      "category": "emotions_and_support",
+      "english": "That is great!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_02",
+      "category": "emotions_and_support",
+      "english": "I am happy for you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_03",
+      "category": "emotions_and_support",
+      "english": "You did well!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_04",
+      "category": "emotions_and_support",
+      "english": "That sounds exciting.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_05",
+      "category": "emotions_and_support",
+      "english": "That made me laugh.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_06",
+      "category": "emotions_and_support",
+      "english": "I was just joking.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_07",
+      "category": "emotions_and_support",
+      "english": "Do not worry.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_08",
+      "category": "emotions_and_support",
+      "english": "What is bothering you?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_09",
+      "category": "emotions_and_support",
+      "english": "That sounds difficult.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_10",
+      "category": "emotions_and_support",
+      "english": "I am sorry that happened.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_11",
+      "category": "emotions_and_support",
+      "english": "Would you like to tell me about it?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_12",
+      "category": "emotions_and_support",
+      "english": "You can take a break.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_13",
+      "category": "emotions_and_support",
+      "english": "It is okay to feel sad.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_14",
+      "category": "emotions_and_support",
+      "english": "You do not have to rush.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "emotions_and_support_15",
+      "category": "emotions_and_support",
+      "english": "I am proud of your effort.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_01",
+      "category": "playful_buddy",
+      "english": "You are funny!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_02",
+      "category": "playful_buddy",
+      "english": "Are you teasing me?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_03",
+      "category": "playful_buddy",
+      "english": "I knew you would say that!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_04",
+      "category": "playful_buddy",
+      "english": "You caught me!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_05",
+      "category": "playful_buddy",
+      "english": "That is a good one.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_06",
+      "category": "playful_buddy",
+      "english": "Let us play a game.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_07",
+      "category": "playful_buddy",
+      "english": "Can I ask you something?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_08",
+      "category": "playful_buddy",
+      "english": "Tell me a joke.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_09",
+      "category": "playful_buddy",
+      "english": "Tell me a story.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_10",
+      "category": "playful_buddy",
+      "english": "What should I call you?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_11",
+      "category": "playful_buddy",
+      "english": "I have an idea.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_12",
+      "category": "playful_buddy",
+      "english": "Guess what?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "playful_buddy_13",
+      "category": "playful_buddy",
+      "english": "That surprised me!",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_01",
+      "category": "needs_and_preferences",
+      "english": "I want this.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_02",
+      "category": "needs_and_preferences",
+      "english": "I do not want this.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_03",
+      "category": "needs_and_preferences",
+      "english": "I like it.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_04",
+      "category": "needs_and_preferences",
+      "english": "I do not like it.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_05",
+      "category": "needs_and_preferences",
+      "english": "I need your help.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_06",
+      "category": "needs_and_preferences",
+      "english": "Do you need anything?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_07",
+      "category": "needs_and_preferences",
+      "english": "Which one do you prefer?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_08",
+      "category": "needs_and_preferences",
+      "english": "Would you like another option?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_09",
+      "category": "needs_and_preferences",
+      "english": "I want to talk to you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_10",
+      "category": "needs_and_preferences",
+      "english": "Please speak slowly.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_11",
+      "category": "needs_and_preferences",
+      "english": "Please keep it short.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_12",
+      "category": "needs_and_preferences",
+      "english": "Please explain in detail.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_13",
+      "category": "needs_and_preferences",
+      "english": "Speak in Malayalam.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_14",
+      "category": "needs_and_preferences",
+      "english": "Speak in English.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "needs_and_preferences_15",
+      "category": "needs_and_preferences",
+      "english": "Use my local slang.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_01",
+      "category": "conversation_and_device",
+      "english": "I could not hear you clearly.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_02",
+      "category": "conversation_and_device",
+      "english": "There is some background noise.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_03",
+      "category": "conversation_and_device",
+      "english": "Please come a little closer.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_04",
+      "category": "conversation_and_device",
+      "english": "The connection was lost.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_05",
+      "category": "conversation_and_device",
+      "english": "Let us reconnect.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_06",
+      "category": "conversation_and_device",
+      "english": "I cannot see the image clearly.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_07",
+      "category": "conversation_and_device",
+      "english": "Can you send a clearer picture?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_08",
+      "category": "conversation_and_device",
+      "english": "What do you want me to look at?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_09",
+      "category": "conversation_and_device",
+      "english": "The battery is low.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_10",
+      "category": "conversation_and_device",
+      "english": "The charger is connected.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_11",
+      "category": "conversation_and_device",
+      "english": "I will be quiet now.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_12",
+      "category": "conversation_and_device",
+      "english": "Let us continue.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_13",
+      "category": "conversation_and_device",
+      "english": "Where were we?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "conversation_and_device_14",
+      "category": "conversation_and_device",
+      "english": "You were saying something.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_01",
+      "category": "context_pairs",
+      "english": "Are you coming?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_02",
+      "category": "context_pairs",
+      "english": "I am coming.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_03",
+      "category": "context_pairs",
+      "english": "Can you give it to me?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_04",
+      "category": "context_pairs",
+      "english": "I will give it to you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_05",
+      "category": "context_pairs",
+      "english": "Is this yours?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_06",
+      "category": "context_pairs",
+      "english": "This is mine.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_07",
+      "category": "context_pairs",
+      "english": "Come with me.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_08",
+      "category": "context_pairs",
+      "english": "I will come with you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_09",
+      "category": "context_pairs",
+      "english": "What do you want?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_10",
+      "category": "context_pairs",
+      "english": "What do I need?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_11",
+      "category": "context_pairs",
+      "english": "Did you tell me?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_12",
+      "category": "context_pairs",
+      "english": "I told you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_13",
+      "category": "context_pairs",
+      "english": "Do you remember me?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_14",
+      "category": "context_pairs",
+      "english": "I remember you.",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_15",
+      "category": "context_pairs",
+      "english": "Can I sit here?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    },
+    {
+      "id": "context_pairs_16",
+      "category": "context_pairs",
+      "english": "Can you wait here?",
+      "normal_malayalam": "",
+      "my_slang": "",
+      "usage_note": ""
+    }
+  ]
+}
