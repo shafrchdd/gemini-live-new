@@ -1,0 +1,1074 @@
+<xml xmlns="http://www.w3.org/1999/xhtml">
+  <block type="global_declaration" id="gl_2" x="40" y="40">
+    <field name="NAME">callId</field>
+    <value name="VALUE">
+      <block type="text" id="gl_1">
+        <field name="TEXT" />
+      </block>
+    </value>
+  </block>
+  <block type="global_declaration" id="gl_4" x="490" y="40">
+    <field name="NAME">callName</field>
+    <value name="VALUE">
+      <block type="text" id="gl_3">
+        <field name="TEXT" />
+      </block>
+    </value>
+  </block>
+  <block type="component_event" id="gl_43" x="40" y="240">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ConnectButton" event_name="Click" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">ConnectButton</field>
+    <statement name="DO">
+      <block type="controls_if" id="gl_42">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" else="1" />
+        <value name="IF0">
+          <block type="math_compare" id="gl_9">
+            <field name="OP">EQ</field>
+            <value name="A">
+              <block type="text_length" id="gl_7">
+                <value name="VALUE">
+                  <block type="text_trim" id="gl_6">
+                    <field name="MODE">BOTH</field>
+                    <value name="TEXT">
+                      <block type="component_set_get" id="gl_5">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="KeyInput" property_name="Text" set_or_get="get" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">KeyInput</field>
+                        <field name="PROP">Text</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <value name="B">
+              <block type="math_number" id="gl_8">
+                <field name="NUM">0</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="component_set_get" id="gl_11">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">ErrorLabel</field>
+            <field name="PROP">Text</field>
+            <value name="VALUE">
+              <block type="text" id="gl_10">
+                <field name="TEXT">Enter your API key.</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="lexical_variable_set" id="gl_13">
+            <field name="VAR">global callId</field>
+            <value name="VALUE">
+              <block type="text" id="gl_12">
+                <field name="TEXT" />
+              </block>
+            </value>
+            <next>
+              <block type="lexical_variable_set" id="gl_15">
+                <field name="VAR">global callName</field>
+                <value name="VALUE">
+                  <block type="text" id="gl_14">
+                    <field name="TEXT" />
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="gl_17">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">ReplyButton</field>
+                    <field name="PROP">Enabled</field>
+                    <value name="VALUE">
+                      <block type="logic_boolean" id="gl_16">
+                        <field name="BOOL">FALSE</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="component_set_get" id="gl_19">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ErrorLabel</field>
+                        <field name="PROP">Text</field>
+                        <value name="VALUE">
+                          <block type="text" id="gl_18">
+                            <field name="TEXT" />
+                          </block>
+                        </value>
+                        <next>
+                          <block type="component_set_get" id="gl_21">
+                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                            <field name="COMPONENT_SELECTOR">AskButton</field>
+                            <field name="PROP">Enabled</field>
+                            <value name="VALUE">
+                              <block type="logic_boolean" id="gl_20">
+                                <field name="BOOL">FALSE</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="component_set_get" id="gl_23">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ConnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                                <field name="COMPONENT_SELECTOR">ConnectButton</field>
+                                <field name="PROP">Enabled</field>
+                                <value name="VALUE">
+                                  <block type="logic_boolean" id="gl_22">
+                                    <field name="BOOL">FALSE</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="component_set_get" id="gl_25">
+                                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="DisconnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                                    <field name="COMPONENT_SELECTOR">DisconnectButton</field>
+                                    <field name="PROP">Enabled</field>
+                                    <value name="VALUE">
+                                      <block type="logic_boolean" id="gl_24">
+                                        <field name="BOOL">TRUE</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="component_set_get" id="gl_27">
+                                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                                        <field name="COMPONENT_SELECTOR">StatusLabel</field>
+                                        <field name="PROP">Text</field>
+                                        <value name="VALUE">
+                                          <block type="text" id="gl_26">
+                                            <field name="TEXT">Connecting…</field>
+                                          </block>
+                                        </value>
+                                        <next>
+                                          <block type="component_method" id="gl_28">
+                                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="ClearFunctions" is_generic="false" />
+                                            <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                                            <next>
+                                              <block type="component_method" id="gl_33">
+                                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="AddFunction" is_generic="false" />
+                                                <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                                                <value name="ARG0">
+                                                  <block type="text_trim" id="gl_30">
+                                                    <field name="MODE">BOTH</field>
+                                                    <value name="TEXT">
+                                                      <block type="component_set_get" id="gl_29">
+                                                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="NameInput" property_name="Text" set_or_get="get" is_generic="false" />
+                                                        <field name="COMPONENT_SELECTOR">NameInput</field>
+                                                        <field name="PROP">Text</field>
+                                                      </block>
+                                                    </value>
+                                                  </block>
+                                                </value>
+                                                <value name="ARG1">
+                                                  <block type="component_set_get" id="gl_31">
+                                                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="DescriptionInput" property_name="Text" set_or_get="get" is_generic="false" />
+                                                    <field name="COMPONENT_SELECTOR">DescriptionInput</field>
+                                                    <field name="PROP">Text</field>
+                                                  </block>
+                                                </value>
+                                                <value name="ARG2">
+                                                  <block type="component_set_get" id="gl_32">
+                                                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="SchemaInput" property_name="Text" set_or_get="get" is_generic="false" />
+                                                    <field name="COMPONENT_SELECTOR">SchemaInput</field>
+                                                    <field name="PROP">Text</field>
+                                                  </block>
+                                                </value>
+                                                <next>
+                                                  <block type="component_set_get" id="gl_36">
+                                                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" property_name="Model" set_or_get="set" is_generic="false" />
+                                                    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                                                    <field name="PROP">Model</field>
+                                                    <value name="VALUE">
+                                                      <block type="text_trim" id="gl_35">
+                                                        <field name="MODE">BOTH</field>
+                                                        <value name="TEXT">
+                                                          <block type="component_set_get" id="gl_34">
+                                                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="ModelInput" property_name="Text" set_or_get="get" is_generic="false" />
+                                                            <field name="COMPONENT_SELECTOR">ModelInput</field>
+                                                            <field name="PROP">Text</field>
+                                                          </block>
+                                                        </value>
+                                                      </block>
+                                                    </value>
+                                                    <next>
+                                                      <block type="component_set_get" id="gl_38">
+                                                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" property_name="SystemInstruction" set_or_get="set" is_generic="false" />
+                                                        <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                                                        <field name="PROP">SystemInstruction</field>
+                                                        <value name="VALUE">
+                                                          <block type="text" id="gl_37">
+                                                            <field name="TEXT">You are testing app function calling. Use the declared function when requested, wait for its result, and briefly explain the returned result. Do not invent function results.</field>
+                                                          </block>
+                                                        </value>
+                                                        <next>
+                                                          <block type="component_method" id="gl_41">
+                                                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="Connect" is_generic="false" />
+                                                            <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                                                            <value name="ARG0">
+                                                              <block type="text_trim" id="gl_40">
+                                                                <field name="MODE">BOTH</field>
+                                                                <value name="TEXT">
+                                                                  <block type="component_set_get" id="gl_39">
+                                                                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="KeyInput" property_name="Text" set_or_get="get" is_generic="false" />
+                                                                    <field name="COMPONENT_SELECTOR">KeyInput</field>
+                                                                    <field name="PROP">Text</field>
+                                                                  </block>
+                                                                </value>
+                                                              </block>
+                                                            </value>
+                                                          </block>
+                                                        </next>
+                                                      </block>
+                                                    </next>
+                                                  </block>
+                                                </next>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_57" x="940" y="240">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="DisconnectButton" event_name="Click" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">DisconnectButton</field>
+    <statement name="DO">
+      <block type="component_method" id="gl_44">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="Disconnect" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+        <next>
+          <block type="lexical_variable_set" id="gl_46">
+            <field name="VAR">global callId</field>
+            <value name="VALUE">
+              <block type="text" id="gl_45">
+                <field name="TEXT" />
+              </block>
+            </value>
+            <next>
+              <block type="lexical_variable_set" id="gl_48">
+                <field name="VAR">global callName</field>
+                <value name="VALUE">
+                  <block type="text" id="gl_47">
+                    <field name="TEXT" />
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="gl_50">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">ReplyButton</field>
+                    <field name="PROP">Enabled</field>
+                    <value name="VALUE">
+                      <block type="logic_boolean" id="gl_49">
+                        <field name="BOOL">FALSE</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="component_set_get" id="gl_52">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">AskButton</field>
+                        <field name="PROP">Enabled</field>
+                        <value name="VALUE">
+                          <block type="logic_boolean" id="gl_51">
+                            <field name="BOOL">FALSE</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="component_set_get" id="gl_54">
+                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ConnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                            <field name="COMPONENT_SELECTOR">ConnectButton</field>
+                            <field name="PROP">Enabled</field>
+                            <value name="VALUE">
+                              <block type="logic_boolean" id="gl_53">
+                                <field name="BOOL">TRUE</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="component_set_get" id="gl_56">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="DisconnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                                <field name="COMPONENT_SELECTOR">DisconnectButton</field>
+                                <field name="PROP">Enabled</field>
+                                <value name="VALUE">
+                                  <block type="logic_boolean" id="gl_55">
+                                    <field name="BOOL">FALSE</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_62" x="1840" y="240">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="SetupComplete" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_59">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">StatusLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="text" id="gl_58">
+            <field name="TEXT">Ready — function registered</field>
+          </block>
+        </value>
+        <next>
+          <block type="component_set_get" id="gl_61">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">AskButton</field>
+            <field name="PROP">Enabled</field>
+            <value name="VALUE">
+              <block type="logic_boolean" id="gl_60">
+                <field name="BOOL">TRUE</field>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_71" x="40" y="2040">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" event_name="Click" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">AskButton</field>
+    <statement name="DO">
+      <block type="controls_if" id="gl_70">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" else="1" />
+        <value name="IF0">
+          <block type="component_method" id="gl_63">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="IsReady" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="component_set_get" id="gl_65">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="set" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+            <field name="PROP">Text</field>
+            <value name="VALUE">
+              <block type="text" id="gl_64">
+                <field name="TEXT" />
+              </block>
+            </value>
+            <next>
+              <block type="component_method" id="gl_67">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="SendText" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                <value name="ARG0">
+                  <block type="component_set_get" id="gl_66">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="PromptInput" property_name="Text" set_or_get="get" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">PromptInput</field>
+                    <field name="PROP">Text</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="component_set_get" id="gl_69">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">ErrorLabel</field>
+            <field name="PROP">Text</field>
+            <value name="VALUE">
+              <block type="text" id="gl_68">
+                <field name="TEXT">Wait for SetupComplete.</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_100" x="940" y="2040">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="FunctionCall" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="controls_if" id="gl_99">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" else="1" />
+        <value name="IF0">
+          <block type="component_set_get" id="gl_72">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" property_name="Enabled" set_or_get="get" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">ReplyButton</field>
+            <field name="PROP">Enabled</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="component_method" id="gl_76">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="SendFunctionResult" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+            <value name="ARG0">
+              <block type="lexical_variable_get" id="gl_73">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="callId" />
+                </mutation>
+                <field name="VAR">callId</field>
+              </block>
+            </value>
+            <value name="ARG1">
+              <block type="lexical_variable_get" id="gl_74">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="name" />
+                </mutation>
+                <field name="VAR">name</field>
+              </block>
+            </value>
+            <value name="ARG2">
+              <block type="text" id="gl_75">
+                <field name="TEXT">{"ok":false,"error":"Another call is awaiting its result. Retry one at a time."}</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="lexical_variable_set" id="gl_78">
+            <field name="VAR">global callId</field>
+            <value name="VALUE">
+              <block type="lexical_variable_get" id="gl_77">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="callId" />
+                </mutation>
+                <field name="VAR">callId</field>
+              </block>
+            </value>
+            <next>
+              <block type="lexical_variable_set" id="gl_80">
+                <field name="VAR">global callName</field>
+                <value name="VALUE">
+                  <block type="lexical_variable_get" id="gl_79">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml">
+                      <eventparam name="name" />
+                    </mutation>
+                    <field name="VAR">name</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="gl_84">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="CallLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">CallLabel</field>
+                    <field name="PROP">Text</field>
+                    <value name="VALUE">
+                      <block type="text_join" id="gl_83">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
+                        <value name="ADD0">
+                          <block type="text" id="gl_81">
+                            <field name="TEXT">Function: </field>
+                          </block>
+                        </value>
+                        <value name="ADD1">
+                          <block type="lexical_variable_get" id="gl_82">
+                            <mutation xmlns="http://www.w3.org/1999/xhtml">
+                              <eventparam name="name" />
+                            </mutation>
+                            <field name="VAR">name</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="component_set_get" id="gl_88">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ArgsLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ArgsLabel</field>
+                        <field name="PROP">Text</field>
+                        <value name="VALUE">
+                          <block type="text_join" id="gl_87">
+                            <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
+                            <value name="ADD0">
+                              <block type="text" id="gl_85">
+                                <field name="TEXT">Arguments JSON: </field>
+                              </block>
+                            </value>
+                            <value name="ADD1">
+                              <block type="lexical_variable_get" id="gl_86">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                                  <eventparam name="argumentsJson" />
+                                </mutation>
+                                <field name="VAR">argumentsJson</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="component_set_get" id="gl_92">
+                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="IdLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                            <field name="COMPONENT_SELECTOR">IdLabel</field>
+                            <field name="PROP">Text</field>
+                            <value name="VALUE">
+                              <block type="text_join" id="gl_91">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
+                                <value name="ADD0">
+                                  <block type="text" id="gl_89">
+                                    <field name="TEXT">Call ID: </field>
+                                  </block>
+                                </value>
+                                <value name="ADD1">
+                                  <block type="lexical_variable_get" id="gl_90">
+                                    <mutation xmlns="http://www.w3.org/1999/xhtml">
+                                      <eventparam name="callId" />
+                                    </mutation>
+                                    <field name="VAR">callId</field>
+                                  </block>
+                                </value>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="component_set_get" id="gl_94">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                                <field name="COMPONENT_SELECTOR">AskButton</field>
+                                <field name="PROP">Enabled</field>
+                                <value name="VALUE">
+                                  <block type="logic_boolean" id="gl_93">
+                                    <field name="BOOL">FALSE</field>
+                                  </block>
+                                </value>
+                                <next>
+                                  <block type="component_set_get" id="gl_96">
+                                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                                    <field name="COMPONENT_SELECTOR">ReplyButton</field>
+                                    <field name="PROP">Enabled</field>
+                                    <value name="VALUE">
+                                      <block type="logic_boolean" id="gl_95">
+                                        <field name="BOOL">TRUE</field>
+                                      </block>
+                                    </value>
+                                    <next>
+                                      <block type="component_set_get" id="gl_98">
+                                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                                        <field name="COMPONENT_SELECTOR">StatusLabel</field>
+                                        <field name="PROP">Text</field>
+                                        <value name="VALUE">
+                                          <block type="text" id="gl_97">
+                                            <field name="TEXT">Call received — inspect arguments, then return result.</field>
+                                          </block>
+                                        </value>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_111" x="1840" y="2040">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" event_name="Click" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">ReplyButton</field>
+    <statement name="DO">
+      <block type="controls_if" id="gl_110">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" else="1" />
+        <value name="IF0">
+          <block type="component_method" id="gl_101">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="IsReady" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="component_method" id="gl_105">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="SendFunctionResult" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+            <value name="ARG0">
+              <block type="lexical_variable_get" id="gl_102">
+                <field name="VAR">global callId</field>
+              </block>
+            </value>
+            <value name="ARG1">
+              <block type="lexical_variable_get" id="gl_103">
+                <field name="VAR">global callName</field>
+              </block>
+            </value>
+            <value name="ARG2">
+              <block type="component_set_get" id="gl_104">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="ResultInput" property_name="Text" set_or_get="get" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ResultInput</field>
+                <field name="PROP">Text</field>
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="gl_107">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">StatusLabel</field>
+                <field name="PROP">Text</field>
+                <value name="VALUE">
+                  <block type="text" id="gl_106">
+                    <field name="TEXT">Result submitted — wait for Gemini reply.</field>
+                  </block>
+                </value>
+              </block>
+            </next>
+          </block>
+        </statement>
+        <statement name="ELSE">
+          <block type="component_set_get" id="gl_109">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">ErrorLabel</field>
+            <field name="PROP">Text</field>
+            <value name="VALUE">
+              <block type="text" id="gl_108">
+                <field name="TEXT">Disconnected; reconnect before testing.</field>
+              </block>
+            </value>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_122" x="40" y="3840">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="TurnComplete" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="lexical_variable_set" id="gl_113">
+        <field name="VAR">global callId</field>
+        <value name="VALUE">
+          <block type="text" id="gl_112">
+            <field name="TEXT" />
+          </block>
+        </value>
+        <next>
+          <block type="lexical_variable_set" id="gl_115">
+            <field name="VAR">global callName</field>
+            <value name="VALUE">
+              <block type="text" id="gl_114">
+                <field name="TEXT" />
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="gl_117">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ReplyButton</field>
+                <field name="PROP">Enabled</field>
+                <value name="VALUE">
+                  <block type="logic_boolean" id="gl_116">
+                    <field name="BOOL">FALSE</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="gl_119">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">AskButton</field>
+                    <field name="PROP">Enabled</field>
+                    <value name="VALUE">
+                      <block type="component_method" id="gl_118">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="IsReady" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="component_set_get" id="gl_121">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">StatusLabel</field>
+                        <field name="PROP">Text</field>
+                        <value name="VALUE">
+                          <block type="text" id="gl_120">
+                            <field name="TEXT">Turn complete</field>
+                          </block>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_139" x="940" y="3840">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="Disconnected" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="lexical_variable_set" id="gl_124">
+        <field name="VAR">global callId</field>
+        <value name="VALUE">
+          <block type="text" id="gl_123">
+            <field name="TEXT" />
+          </block>
+        </value>
+        <next>
+          <block type="lexical_variable_set" id="gl_126">
+            <field name="VAR">global callName</field>
+            <value name="VALUE">
+              <block type="text" id="gl_125">
+                <field name="TEXT" />
+              </block>
+            </value>
+            <next>
+              <block type="component_set_get" id="gl_128">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ReplyButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ReplyButton</field>
+                <field name="PROP">Enabled</field>
+                <value name="VALUE">
+                  <block type="logic_boolean" id="gl_127">
+                    <field name="BOOL">FALSE</field>
+                  </block>
+                </value>
+                <next>
+                  <block type="component_set_get" id="gl_130">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="AskButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">AskButton</field>
+                    <field name="PROP">Enabled</field>
+                    <value name="VALUE">
+                      <block type="logic_boolean" id="gl_129">
+                        <field name="BOOL">FALSE</field>
+                      </block>
+                    </value>
+                    <next>
+                      <block type="component_set_get" id="gl_132">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ConnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ConnectButton</field>
+                        <field name="PROP">Enabled</field>
+                        <value name="VALUE">
+                          <block type="logic_boolean" id="gl_131">
+                            <field name="BOOL">TRUE</field>
+                          </block>
+                        </value>
+                        <next>
+                          <block type="component_set_get" id="gl_134">
+                            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="DisconnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+                            <field name="COMPONENT_SELECTOR">DisconnectButton</field>
+                            <field name="PROP">Enabled</field>
+                            <value name="VALUE">
+                              <block type="logic_boolean" id="gl_133">
+                                <field name="BOOL">FALSE</field>
+                              </block>
+                            </value>
+                            <next>
+                              <block type="component_set_get" id="gl_138">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                                <field name="COMPONENT_SELECTOR">StatusLabel</field>
+                                <field name="PROP">Text</field>
+                                <value name="VALUE">
+                                  <block type="text_join" id="gl_137">
+                                    <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
+                                    <value name="ADD0">
+                                      <block type="text" id="gl_135">
+                                        <field name="TEXT">Disconnected: </field>
+                                      </block>
+                                    </value>
+                                    <value name="ADD1">
+                                      <block type="lexical_variable_get" id="gl_136">
+                                        <mutation xmlns="http://www.w3.org/1999/xhtml">
+                                          <eventparam name="reason" />
+                                        </mutation>
+                                        <field name="VAR">reason</field>
+                                      </block>
+                                    </value>
+                                  </block>
+                                </value>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_145" x="1840" y="3840">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="Error" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_141">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">ErrorLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="lexical_variable_get" id="gl_140">
+            <mutation xmlns="http://www.w3.org/1999/xhtml">
+              <eventparam name="message" />
+            </mutation>
+            <field name="VAR">message</field>
+          </block>
+        </value>
+        <next>
+          <block type="component_set_get" id="gl_144">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="ConnectButton" property_name="Enabled" set_or_get="set" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">ConnectButton</field>
+            <field name="PROP">Enabled</field>
+            <value name="VALUE">
+              <block type="logic_negate" id="gl_143">
+                <value name="BOOL">
+                  <block type="component_method" id="gl_142">
+                    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" method_name="IsConnected" is_generic="false" />
+                    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_151" x="40" y="5640">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Form" instance_name="Screen1" event_name="ErrorOccurred" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">Screen1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_150">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">ErrorLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="text_join" id="gl_149">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" items="3" />
+            <value name="ADD0">
+              <block type="lexical_variable_get" id="gl_146">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="functionName" />
+                </mutation>
+                <field name="VAR">functionName</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="text" id="gl_147">
+                <field name="TEXT">: </field>
+              </block>
+            </value>
+            <value name="ADD2">
+              <block type="lexical_variable_get" id="gl_148">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="message" />
+                </mutation>
+                <field name="VAR">message</field>
+              </block>
+            </value>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_169" x="940" y="5640">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="TextReceived" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_155">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="text_join" id="gl_154">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
+            <value name="ADD0">
+              <block type="component_set_get" id="gl_152">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                <field name="PROP">Text</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="lexical_variable_get" id="gl_153">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="text" />
+                </mutation>
+                <field name="VAR">text</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="controls_if" id="gl_168">
+            <value name="IF0">
+              <block type="math_compare" id="gl_166">
+                <field name="OP">GT</field>
+                <value name="A">
+                  <block type="text_length" id="gl_164">
+                    <value name="VALUE">
+                      <block type="component_set_get" id="gl_163">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                        <field name="PROP">Text</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="math_number" id="gl_165">
+                    <field name="NUM">2000</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="component_set_get" id="gl_167">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                <field name="PROP">Text</field>
+                <value name="VALUE">
+                  <block type="text_segment" id="gl_160">
+                    <value name="TEXT">
+                      <block type="component_set_get" id="gl_161">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                        <field name="PROP">Text</field>
+                      </block>
+                    </value>
+                    <value name="START">
+                      <block type="math_subtract" id="gl_156">
+                        <value name="A">
+                          <block type="text_length" id="gl_158">
+                            <value name="VALUE">
+                              <block type="component_set_get" id="gl_157">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                                <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                                <field name="PROP">Text</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="math_number" id="gl_159">
+                            <field name="NUM">1999</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="LENGTH">
+                      <block type="math_number" id="gl_162">
+                        <field name="NUM">2000</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_187" x="1840" y="5640">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="GeminiLive" instance_name="GeminiLive1" event_name="OutputTranscription" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">GeminiLive1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_173">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="text_join" id="gl_172">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
+            <value name="ADD0">
+              <block type="component_set_get" id="gl_170">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                <field name="PROP">Text</field>
+              </block>
+            </value>
+            <value name="ADD1">
+              <block type="lexical_variable_get" id="gl_171">
+                <mutation xmlns="http://www.w3.org/1999/xhtml">
+                  <eventparam name="text" />
+                </mutation>
+                <field name="VAR">text</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <next>
+          <block type="controls_if" id="gl_186">
+            <value name="IF0">
+              <block type="math_compare" id="gl_184">
+                <field name="OP">GT</field>
+                <value name="A">
+                  <block type="text_length" id="gl_182">
+                    <value name="VALUE">
+                      <block type="component_set_get" id="gl_181">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                        <field name="PROP">Text</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+                <value name="B">
+                  <block type="math_number" id="gl_183">
+                    <field name="NUM">2000</field>
+                  </block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="component_set_get" id="gl_185">
+                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="set" is_generic="false" />
+                <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                <field name="PROP">Text</field>
+                <value name="VALUE">
+                  <block type="text_segment" id="gl_178">
+                    <value name="TEXT">
+                      <block type="component_set_get" id="gl_179">
+                        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                        <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                        <field name="PROP">Text</field>
+                      </block>
+                    </value>
+                    <value name="START">
+                      <block type="math_subtract" id="gl_174">
+                        <value name="A">
+                          <block type="text_length" id="gl_176">
+                            <value name="VALUE">
+                              <block type="component_set_get" id="gl_175">
+                                <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ResponseLabel" property_name="Text" set_or_get="get" is_generic="false" />
+                                <field name="COMPONENT_SELECTOR">ResponseLabel</field>
+                                <field name="PROP">Text</field>
+                              </block>
+                            </value>
+                          </block>
+                        </value>
+                        <value name="B">
+                          <block type="math_number" id="gl_177">
+                            <field name="NUM">1999</field>
+                          </block>
+                        </value>
+                      </block>
+                    </value>
+                    <value name="LENGTH">
+                      <block type="math_number" id="gl_180">
+                        <field name="NUM">2000</field>
+                      </block>
+                    </value>
+                  </block>
+                </value>
+              </block>
+            </statement>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <yacodeblocks ya-version="222" language-version="29" />
+</xml>
