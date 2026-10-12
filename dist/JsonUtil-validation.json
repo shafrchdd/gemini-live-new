@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "aix_sha256": "f0da7834ea36751692470c8170243af0ae2be6bce894e228f3aecafb64bbc3e0",
+  "compile_metadata_dex": "passed",
+  "host_core_checks": 44,
+  "kodular_android_execution": "not_run"
+}
