@@ -19,3 +19,9 @@ Rebuild: python3 tools/create_buddy_json_function_demo.py /path/to/GeminiLive.ai
 JsonUtil replaces the Web JSON decoder and dictionary lookup blocks. The result contains ok, emotion/reaction, current_emotion and status; reactions also include duration_ms=3000. Invalid JSON/object roots and unsupported values receive an error result. No manual Return result button is needed. All three extensions are embedded; do not import duplicate copies into this project.
 
 The natural companion system instruction is in docs/DeskBuddy-natural-system-instruction.txt and is embedded in the Connect blocks. Function results remain internal; responses should address the user instead of describing face changes. Gesture selection is model-driven, so a particular gesture is not guaranteed on every message. Reconnect after editing system instructions.
+
+## Custom system instructions
+
+The updated standard demo has a multiline System instruction field. Connect passes that field directly to GeminiLive.SystemInstruction before opening the session. Edit it before connecting and disconnect/reconnect after any change. Its initial text is a suggested personality, not a fixed override.
+
+GeminiBuddyJsonFunctionsCustom.aia is the corrected user-uploaded project: it preserves the custom GikkuBuddy personality, Clock and extension assets. Both Screen.Initialize and Connect read the same field, so Connect cannot overwrite the custom instruction with the previous preset. The designer API key is cleared before publication.

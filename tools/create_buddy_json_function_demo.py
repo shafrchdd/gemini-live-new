@@ -29,6 +29,8 @@ class Demo(ProjectBuilder):
   children.append(c('BuddyPanel','VerticalArrangement',Height='300',Width='-2',BackgroundColor='&HFF000000'))
   label('KeyLabel','Gemini API key (not saved)');box('KeyInput','')
   label('ModelLabel','Live model ID');box('ModelInput','gemini-3.8-live')
+  label('SystemInstructionLabel','System instruction — edit before connecting; reconnect after changes')
+  children.append(c('SystemInstructionInput','TextBox',Text=(ROOT/'docs/DeskBuddy-natural-system-instruction.txt').read_text(),MultiLine='True',Width='-2',Height='180'))
   button('ConnectButton','Register buddy functions and connect');button('DisconnectButton','Disconnect',False)
   label('StatusLabel','Disconnected')
   box('PromptInput','Hi! I had a great day today. How are you?');button('SendButton','Send prompt',False)
@@ -49,7 +51,7 @@ class Demo(ProjectBuilder):
   for name,key,catalog,desc in [('buddy_set_emotion','emotion','emotions','Silently express the conversational mood through the avatar. Use naturally when the mood changes, without waiting for an explicit user request. Never announce the face change or its result.'),('buddy_play_reaction','reaction','reactions','Silently add an occasional fitting gesture to conversation, such as a greeting wave or celebration. Never narrate the gesture or acknowledge its execution result.')]:
    schema={'type':'object','properties':{key:{'type':'string','enum':self.catalog[catalog]}},'required':[key]}
    registrations.append(self.method('GeminiLive1','AddFunction',self.literal(name),self.literal(desc),self.literal(json.dumps(schema,separators=(',',':')))))
-  self.event('ConnectButton','Click',[self.conditional(self.compare(self.length(self.trim(self.prop('KeyInput','Text'))),'EQ',self.number(0)),[self.set_text('ErrorLabel','Enter your API key.')],[self.set_text('ErrorLabel',''),*self.controls(False),self.enabled('ConnectButton',False),self.enabled('DisconnectButton',True),self.method('GeminiLive1','ClearFunctions'),*registrations,self.prop('GeminiLive1','Model',self.trim(self.prop('ModelInput','Text'))),self.prop('GeminiLive1','SystemInstruction',self.literal((ROOT/'docs/DeskBuddy-natural-system-instruction.txt').read_text())),self.set_text('StatusLabel','Connecting…'),self.method('GeminiLive1','Connect',self.trim(self.prop('KeyInput','Text')))])])
+  self.event('ConnectButton','Click',[self.conditional(self.compare(self.length(self.trim(self.prop('KeyInput','Text'))),'EQ',self.number(0)),[self.set_text('ErrorLabel','Enter your API key.')],[self.set_text('ErrorLabel',''),*self.controls(False),self.enabled('ConnectButton',False),self.enabled('DisconnectButton',True),self.method('GeminiLive1','ClearFunctions'),*registrations,self.prop('GeminiLive1','Model',self.trim(self.prop('ModelInput','Text'))),self.prop('GeminiLive1','SystemInstruction',self.prop('SystemInstructionInput','Text')),self.set_text('StatusLabel','Connecting…'),self.method('GeminiLive1','Connect',self.trim(self.prop('KeyInput','Text')))])])
   self.event('DisconnectButton','Click',[self.method('GeminiLive1','Disconnect'),*self.controls(False),self.enabled('ConnectButton',True),self.enabled('DisconnectButton',False)])
   self.event('GeminiLive1','SetupComplete',[*self.controls(True),self.set_text('StatusLabel','Ready — emotion and reaction functions registered')])
   for button,prompt in [('SendButton',None),('EmotionButton','I have some good news: I passed my exam!'),('ReactionButton','Hey buddy! Nice to meet you.')]:
