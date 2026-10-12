@@ -82,7 +82,11 @@ def main():
                         default=ROOT / "src/com/fabiyon/geminilive/GeminiLive.java")
     parser.add_argument("--build-dir", type=pathlib.Path, default=ROOT / "build")
     parser.add_argument("--compile-only", action="store_true")
+    parser.add_argument("--package", default=PACKAGE, help="Extension package to bundle")
     args = parser.parse_args()
+    package = args.package
+    if not all(part.isidentifier() for part in package.split(".")):
+        raise RuntimeError("Invalid extension package")
     java, javac = prepare()
     build = args.build_dir.resolve()
     if build == ROOT or ROOT.is_relative_to(build):
@@ -118,23 +122,23 @@ def main():
         classes / "simple_components_build_info.json",
         external, classes, dependencies, external_classes, "false"
     ], build / "metadata.log")
-    runtime_jar = external / PACKAGE / "files/AndroidRuntime.jar"
-    jar_tree(external_classes / PACKAGE, runtime_jar)
+    runtime_jar = external / package / "files/AndroidRuntime.jar"
+    jar_tree(external_classes / package, runtime_jar)
     run([java, "-jar", DEPS / "dx.jar", "--dex", "--no-strict", "--output",
-         external / PACKAGE / "classes.jar", runtime_jar], build / "dex.log")
-    dex_archive = external / PACKAGE / "classes.jar"
+         external / package / "classes.jar", runtime_jar], build / "dex.log")
+    dex_archive = external / package / "classes.jar"
     with zipfile.ZipFile(dex_archive) as archive:
         assert archive.read("classes.dex").startswith(b"dex\n"), "Missing valid DEX header"
-    build_info = json.loads((external / PACKAGE / "files/component_build_infos.json").read_text())
-    required = {"android.permission.INTERNET", "android.permission.RECORD_AUDIO"}
+    build_info = json.loads((external / package / "files/component_build_infos.json").read_text())
+    required = ({"android.permission.INTERNET", "android.permission.RECORD_AUDIO"} if package == PACKAGE else set())
     permissions = {permission for component in build_info
                    for permission in component.get("permissions", [])}
     assert required.issubset(permissions), "Microphone/network permissions missing from build metadata"
     dist = ROOT / "dist"
     dist.mkdir(exist_ok=True)
-    output = dist / (PACKAGE + ".aix")
+    output = dist / (package + ".aix")
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as archive:
-        for item in sorted((external / PACKAGE).rglob("*")):
+        for item in sorted((external / package).rglob("*")):
             if item.is_file():
                 archive.write(item, item.relative_to(external).as_posix())
     digest = hashlib.sha256(output.read_bytes()).hexdigest()

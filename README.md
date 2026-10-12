@@ -2,6 +2,8 @@
 
 This is the repaired version of the uploaded `com.fabiyon.geminilive.GeminiLive` extension. Existing block signatures are preserved. Version 5 adds configurable input and reply languages while retaining playback fixes, photo input, and tool calling.
 
+Independent avatar: [DeskBuddy extension, demo and guide](docs/DeskBuddy.md) — cyan eyes, layered emotions, touch/motion reactions and charging overlays.
+
 Downloads:
 
 - [Kodular test project (.aia)](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/GeminiLiveTest.aia) — extension and example blocks included; [usage instructions](examples/README.md).

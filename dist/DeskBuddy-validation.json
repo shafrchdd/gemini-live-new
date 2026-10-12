@@ -1,0 +1,18 @@
+{
+  "extension": "com.fabiyon.deskbuddy.DeskBuddy",
+  "version": 1,
+  "verified_at_utc": "2026-10-12T07:55:13.770257+00:00",
+  "source_sha256": "dac2dd09de24f3960f1cbecc611f33391958e9ac3197ef6b51b4656f17538ebd",
+  "aix_sha256": "dea7f5c876329350faac5238b75ad44922f4bf1e5ef5e95187d7a9961499d2e8",
+  "aia_sha256": "f6855c41f2c217724efffccd27e0417bc02e6b0c74349191f65ff549e14f8020",
+  "authentic_compile_metadata_and_dex": "passed",
+  "state_motion_and_vector_drawing_tests": {
+    "passed": 141,
+    "failed": 0
+  },
+  "aia_structure_signatures_and_payload": "passed",
+  "negative_archive_cases_rejected": 3,
+  "legacy_compile_and_artifact_integrity": "passed",
+  "physical_android_test": "not_run",
+  "kodular_import_export_test": "not_run"
+}
