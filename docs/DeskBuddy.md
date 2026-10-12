@@ -4,7 +4,7 @@ A separate `com.fabiyon.deskbuddy.DeskBuddy` extension. It adds a native animate
 
 - [Download DeskBuddy.aix](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/com.fabiyon.deskbuddy.aix)
 - [Download DeskBuddyDemo.aia](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/examples/DeskBuddyDemo.aia) — includes the extension and all test blocks
-- [Source/build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/DeskBuddy-v1.zip)
+- [Source/build bundle](https://github.com/shafrchdd/gemini-live-new/raw/refs/heads/main/dist/DeskBuddy-v2.zip)
 - [Complete named catalogs](DeskBuddy-catalog.json)
 - [Drawing gallery](../examples/deskbuddy/gallery/index.html) — download/open locally to filter sample poses
 
@@ -45,6 +45,8 @@ Sensors register only when attached, enabled and foregrounded. Stop, detach, scr
 KeepScreenOn is an opt-in view setting, off by default. Enable the demo checkbox when using the phone as a desk display so Android's screen timeout does not hide autonomous sleep/idle animations. Stop/backgrounding releases the avatar's request; it does not remove another component's request to keep the screen awake.
 
 ## Device overlays
+
+Use the Designer properties or setter blocks `ShowBatteryIcon` and `ShowWifiIcon`: `false` hides that symbol and `true` shows it again. Both default to true and work independently, including manual overlays and temporary system previews. The demo includes two matching checkboxes. Monitoring, battery/Wi-Fi events and automatic reactions continue while icons are hidden. Hiding the battery icon also hides its draining arrow; the attached charging power bolt remains visible when plugged in.
 
 Battery and plug state are read from Android's battery broadcast. A connected charger keeps the cyan power bolt attached to the avatar throughout other expressions. Charging pulses an energy ring; a transition to 100% celebrates with a green battery. Unplugged levels at 6–20% show low battery; 0–5% show a blinking critical warning. Declining battery contributes tired eyes and a draining indicator. `BatteryLevel()` returns -1 when unknown; `IsPluggedIn()` reports the displayed plug state.
 

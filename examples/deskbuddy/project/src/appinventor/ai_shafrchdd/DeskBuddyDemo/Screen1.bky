@@ -351,42 +351,78 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_70" x="40" y="7440">
+  <block type="component_event" id="gl_65" x="40" y="7440">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="CheckBox" instance_name="BatteryIconCheck" event_name="Changed" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">BatteryIconCheck</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_64">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" property_name="ShowBatteryIcon" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
+        <field name="PROP">ShowBatteryIcon</field>
+        <value name="VALUE">
+          <block type="component_set_get" id="gl_63">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="CheckBox" instance_name="BatteryIconCheck" property_name="Checked" set_or_get="get" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">BatteryIconCheck</field>
+            <field name="PROP">Checked</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_68" x="940" y="7440">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="CheckBox" instance_name="WifiIconCheck" event_name="Changed" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">WifiIconCheck</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_67">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" property_name="ShowWifiIcon" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
+        <field name="PROP">ShowWifiIcon</field>
+        <value name="VALUE">
+          <block type="component_set_get" id="gl_66">
+            <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="CheckBox" instance_name="WifiIconCheck" property_name="Checked" set_or_get="get" is_generic="false" />
+            <field name="COMPONENT_SELECTOR">WifiIconCheck</field>
+            <field name="PROP">Checked</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_76" x="1840" y="7440">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="PowerButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">PowerButton</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_64">
+      <block type="component_set_get" id="gl_70">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="CheckBox" instance_name="DeviceCheck" property_name="Checked" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeviceCheck</field>
         <field name="PROP">Checked</field>
         <value name="VALUE">
-          <block type="logic_boolean" id="gl_63">
+          <block type="logic_boolean" id="gl_69">
             <field name="BOOL">FALSE</field>
           </block>
         </value>
         <next>
-          <block type="component_set_get" id="gl_66">
+          <block type="component_set_get" id="gl_72">
             <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" property_name="DeviceMonitoring" set_or_get="set" is_generic="false" />
             <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
             <field name="PROP">DeviceMonitoring</field>
             <value name="VALUE">
-              <block type="logic_boolean" id="gl_65">
+              <block type="logic_boolean" id="gl_71">
                 <field name="BOOL">FALSE</field>
               </block>
             </value>
             <next>
-              <block type="component_method" id="gl_69">
+              <block type="component_method" id="gl_75">
                 <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="SetPowerState" is_generic="false" />
                 <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
                 <value name="ARG0">
-                  <block type="component_set_get" id="gl_67">
+                  <block type="component_set_get" id="gl_73">
                     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="TextBox" instance_name="BatteryInput" property_name="Text" set_or_get="get" is_generic="false" />
                     <field name="COMPONENT_SELECTOR">BatteryInput</field>
                     <field name="PROP">Text</field>
                   </block>
                 </value>
                 <value name="ARG1">
-                  <block type="component_set_get" id="gl_68">
+                  <block type="component_set_get" id="gl_74">
                     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="CheckBox" instance_name="ChargeCheck" property_name="Checked" set_or_get="get" is_generic="false" />
                     <field name="COMPONENT_SELECTOR">ChargeCheck</field>
                     <field name="PROP">Checked</field>
@@ -399,94 +435,94 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_72" x="940" y="7440">
+  <block type="component_event" id="gl_78" x="40" y="9240">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="SleepButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">SleepButton</field>
     <statement name="DO">
-      <block type="component_method" id="gl_71">
+      <block type="component_method" id="gl_77">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="Sleep" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_74" x="1840" y="7440">
+  <block type="component_event" id="gl_80" x="940" y="9240">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="WakeButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">WakeButton</field>
     <statement name="DO">
-      <block type="component_method" id="gl_73">
+      <block type="component_method" id="gl_79">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="WakeUp" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_76" x="40" y="9240">
+  <block type="component_event" id="gl_82" x="1840" y="9240">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="StopButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">StopButton</field>
     <statement name="DO">
-      <block type="component_method" id="gl_75">
+      <block type="component_method" id="gl_81">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="Stop" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_78" x="940" y="9240">
+  <block type="component_event" id="gl_84" x="40" y="11040">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="StartButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">StartButton</field>
     <statement name="DO">
-      <block type="component_method" id="gl_77">
+      <block type="component_method" id="gl_83">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="Start" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_81" x="1840" y="9240">
+  <block type="component_event" id="gl_87" x="940" y="11040">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="SpeakButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">SpeakButton</field>
     <statement name="DO">
-      <block type="component_method" id="gl_80">
+      <block type="component_method" id="gl_86">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="SetConversationState" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
         <value name="ARG0">
-          <block type="text" id="gl_79">
+          <block type="text" id="gl_85">
             <field name="TEXT">speaking</field>
           </block>
         </value>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_84" x="40" y="11040">
+  <block type="component_event" id="gl_90" x="1840" y="11040">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Button" instance_name="QuietButton" event_name="Click" is_generic="false" />
     <field name="COMPONENT_SELECTOR">QuietButton</field>
     <statement name="DO">
-      <block type="component_method" id="gl_83">
+      <block type="component_method" id="gl_89">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" method_name="SetConversationState" is_generic="false" />
         <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
         <value name="ARG0">
-          <block type="text" id="gl_82">
+          <block type="text" id="gl_88">
             <field name="TEXT" />
           </block>
         </value>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_89" x="940" y="11040">
+  <block type="component_event" id="gl_95" x="40" y="12840">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="EmotionChanged" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_88">
+      <block type="component_set_get" id="gl_94">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StateLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">StateLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_87">
+          <block type="text_join" id="gl_93">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
             <value name="ADD0">
-              <block type="text" id="gl_85">
+              <block type="text" id="gl_91">
                 <field name="TEXT">Emotion: </field>
               </block>
             </value>
             <value name="ADD1">
-              <block type="lexical_variable_get" id="gl_86">
+              <block type="lexical_variable_get" id="gl_92">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="emotion" />
                 </mutation>
@@ -498,24 +534,24 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_94" x="1840" y="11040">
+  <block type="component_event" id="gl_100" x="940" y="12840">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="ReactionStarted" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_93">
+      <block type="component_set_get" id="gl_99">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StateLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">StateLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_92">
+          <block type="text_join" id="gl_98">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
             <value name="ADD0">
-              <block type="text" id="gl_90">
+              <block type="text" id="gl_96">
                 <field name="TEXT">Reaction: </field>
               </block>
             </value>
             <value name="ADD1">
-              <block type="lexical_variable_get" id="gl_91">
+              <block type="lexical_variable_get" id="gl_97">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="reaction" />
                 </mutation>
@@ -527,24 +563,24 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_99" x="40" y="12840">
+  <block type="component_event" id="gl_105" x="1840" y="12840">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="IdleBehaviorChanged" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_98">
+      <block type="component_set_get" id="gl_104">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StateLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">StateLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_97">
+          <block type="text_join" id="gl_103">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
             <value name="ADD0">
-              <block type="text" id="gl_95">
+              <block type="text" id="gl_101">
                 <field name="TEXT">Idle: </field>
               </block>
             </value>
             <value name="ADD1">
-              <block type="lexical_variable_get" id="gl_96">
+              <block type="lexical_variable_get" id="gl_102">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="behavior" />
                 </mutation>
@@ -556,24 +592,24 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_104" x="940" y="12840">
+  <block type="component_event" id="gl_110" x="40" y="14640">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Error" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_103">
+      <block type="component_set_get" id="gl_109">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">ErrorLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_102">
+          <block type="text_join" id="gl_108">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
             <value name="ADD0">
-              <block type="text" id="gl_100">
+              <block type="text" id="gl_106">
                 <field name="TEXT">Error: </field>
               </block>
             </value>
             <value name="ADD1">
-              <block type="lexical_variable_get" id="gl_101">
+              <block type="lexical_variable_get" id="gl_107">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="message" />
                 </mutation>
@@ -585,40 +621,8 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_107" x="1840" y="12840">
-    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Lifted" is_generic="false" />
-    <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
-    <statement name="DO">
-      <block type="component_set_get" id="gl_106">
-        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
-        <field name="COMPONENT_SELECTOR">StatusLabel</field>
-        <field name="PROP">Text</field>
-        <value name="VALUE">
-          <block type="text" id="gl_105">
-            <field name="TEXT">Lift detected</field>
-          </block>
-        </value>
-      </block>
-    </statement>
-  </block>
-  <block type="component_event" id="gl_110" x="40" y="14640">
-    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Shaken" is_generic="false" />
-    <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
-    <statement name="DO">
-      <block type="component_set_get" id="gl_109">
-        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
-        <field name="COMPONENT_SELECTOR">StatusLabel</field>
-        <field name="PROP">Text</field>
-        <value name="VALUE">
-          <block type="text" id="gl_108">
-            <field name="TEXT">Shake detected</field>
-          </block>
-        </value>
-      </block>
-    </statement>
-  </block>
   <block type="component_event" id="gl_113" x="940" y="14640">
-    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Touched" is_generic="false" />
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Lifted" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
       <block type="component_set_get" id="gl_112">
@@ -627,14 +631,14 @@
         <field name="PROP">Text</field>
         <value name="VALUE">
           <block type="text" id="gl_111">
-            <field name="TEXT">Touch detected</field>
+            <field name="TEXT">Lift detected</field>
           </block>
         </value>
       </block>
     </statement>
   </block>
   <block type="component_event" id="gl_116" x="1840" y="14640">
-    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="LongPressed" is_generic="false" />
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Shaken" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
       <block type="component_set_get" id="gl_115">
@@ -643,30 +647,62 @@
         <field name="PROP">Text</field>
         <value name="VALUE">
           <block type="text" id="gl_114">
+            <field name="TEXT">Shake detected</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_119" x="40" y="16440">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="Touched" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_118">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">StatusLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="text" id="gl_117">
+            <field name="TEXT">Touch detected</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="component_event" id="gl_122" x="940" y="16440">
+    <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="LongPressed" is_generic="false" />
+    <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
+    <statement name="DO">
+      <block type="component_set_get" id="gl_121">
+        <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
+        <field name="COMPONENT_SELECTOR">StatusLabel</field>
+        <field name="PROP">Text</field>
+        <value name="VALUE">
+          <block type="text" id="gl_120">
             <field name="TEXT">Long press detected</field>
           </block>
         </value>
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_123" x="40" y="16440">
+  <block type="component_event" id="gl_129" x="1840" y="16440">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="ChargingChanged" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_122">
+      <block type="component_set_get" id="gl_128">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">StatusLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_121">
+          <block type="text_join" id="gl_127">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="4" />
             <value name="ADD0">
-              <block type="text" id="gl_117">
+              <block type="text" id="gl_123">
                 <field name="TEXT">Plugged in: </field>
               </block>
             </value>
             <value name="ADD1">
-              <block type="lexical_variable_get" id="gl_118">
+              <block type="lexical_variable_get" id="gl_124">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="plugged" />
                 </mutation>
@@ -674,12 +710,12 @@
               </block>
             </value>
             <value name="ADD2">
-              <block type="text" id="gl_119">
+              <block type="text" id="gl_125">
                 <field name="TEXT"> | Battery: </field>
               </block>
             </value>
             <value name="ADD3">
-              <block type="lexical_variable_get" id="gl_120">
+              <block type="lexical_variable_get" id="gl_126">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="level" />
                 </mutation>
@@ -691,24 +727,24 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_128" x="940" y="16440">
+  <block type="component_event" id="gl_134" x="40" y="18240">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="DeskBuddy" instance_name="DeskBuddy1" event_name="WifiChanged" is_generic="false" />
     <field name="COMPONENT_SELECTOR">DeskBuddy1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_127">
+      <block type="component_set_get" id="gl_133">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="StatusLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">StatusLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_126">
+          <block type="text_join" id="gl_132">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="2" />
             <value name="ADD0">
-              <block type="text" id="gl_124">
+              <block type="text" id="gl_130">
                 <field name="TEXT">Wi-Fi connected: </field>
               </block>
             </value>
             <value name="ADD1">
-              <block type="lexical_variable_get" id="gl_125">
+              <block type="lexical_variable_get" id="gl_131">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="connected" />
                 </mutation>
@@ -720,19 +756,19 @@
       </block>
     </statement>
   </block>
-  <block type="component_event" id="gl_134" x="1840" y="16440">
+  <block type="component_event" id="gl_140" x="940" y="18240">
     <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Form" instance_name="Screen1" event_name="ErrorOccurred" is_generic="false" />
     <field name="COMPONENT_SELECTOR">Screen1</field>
     <statement name="DO">
-      <block type="component_set_get" id="gl_133">
+      <block type="component_set_get" id="gl_139">
         <mutation xmlns="http://www.w3.org/1999/xhtml" component_type="Label" instance_name="ErrorLabel" property_name="Text" set_or_get="set" is_generic="false" />
         <field name="COMPONENT_SELECTOR">ErrorLabel</field>
         <field name="PROP">Text</field>
         <value name="VALUE">
-          <block type="text_join" id="gl_132">
+          <block type="text_join" id="gl_138">
             <mutation xmlns="http://www.w3.org/1999/xhtml" items="3" />
             <value name="ADD0">
-              <block type="lexical_variable_get" id="gl_129">
+              <block type="lexical_variable_get" id="gl_135">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="functionName" />
                 </mutation>
@@ -740,12 +776,12 @@
               </block>
             </value>
             <value name="ADD1">
-              <block type="text" id="gl_130">
+              <block type="text" id="gl_136">
                 <field name="TEXT">: </field>
               </block>
             </value>
             <value name="ADD2">
-              <block type="lexical_variable_get" id="gl_131">
+              <block type="lexical_variable_get" id="gl_137">
                 <mutation xmlns="http://www.w3.org/1999/xhtml">
                   <eventparam name="message" />
                 </mutation>

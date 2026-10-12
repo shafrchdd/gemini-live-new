@@ -39,7 +39,7 @@ def main():
         screen = json.loads(raw.split("$JSON\n", 1)[1].rsplit("\n|#", 1)[0])
         require(screen["YaVersion"] == "222", "Unexpected export baseline")
         components = {}
-        versions = {"Form": "42", "VerticalArrangement": "10", "HorizontalArrangement": "10", "Label": "10", "Button": "13", "TextBox": "13", "CheckBox": "6", "ListPicker": "17", "DeskBuddy": "1"}
+        versions = {"Form": "42", "VerticalArrangement": "10", "HorizontalArrangement": "10", "Label": "10", "Button": "13", "TextBox": "13", "CheckBox": "6", "ListPicker": "17", "DeskBuddy": "2"}
 
         def visit(component):
             name, type_ = component["$Name"], component["$Type"]

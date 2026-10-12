@@ -10,7 +10,7 @@ from create_test_aia import ProjectBuilder, VERSIONS, YA_VERSION, LANGUAGE_VERSI
 ROOT = Path(__file__).resolve().parent.parent
 PROJECT = "DeskBuddyDemo"
 PACKAGE = "appinventor.ai_shafrchdd." + PROJECT
-VERSIONS.update(DeskBuddy="1", ListPicker="17")
+VERSIONS.update(DeskBuddy="2", ListPicker="17")
 
 
 class Demo(ProjectBuilder):
@@ -37,6 +37,8 @@ class Demo(ProjectBuilder):
                     c("AwakeCheck", "CheckBox", Text="Keep screen awake while buddy is running", Checked="False", TextColor="&HFF00E5FF"),
                     c("SensorsCheck", "CheckBox", Text="Touch/motion automatic reactions and motion sensors", Checked="True", TextColor="&HFF00E5FF"),
                     c("DeviceCheck", "CheckBox", Text="Monitor real battery and Wi-Fi (off for power simulation)", Checked="True", TextColor="&HFF00E5FF"),
+                    c("BatteryIconCheck", "CheckBox", Text="Show battery symbol", Checked="True", TextColor="&HFF00E5FF"),
+                    c("WifiIconCheck", "CheckBox", Text="Show Wi-Fi symbol", Checked="True", TextColor="&HFF00E5FF"),
                     c("ChargeCheck", "CheckBox", Text="Simulate connected charger", Checked="False", TextColor="&HFF00E5FF"),
                     c("BatteryInput", "TextBox", Text="65", Hint="Simulated battery 0-100", NumbersOnly="True", Width="-2"),
                     button("PowerButton", "Apply simulated power"),
@@ -73,6 +75,8 @@ class Demo(ProjectBuilder):
         self.event("SensorsCheck", "Changed", [self.prop("DeskBuddy1", "SensorsEnabled", self.prop("SensorsCheck", "Checked")),
                    self.prop("DeskBuddy1", "AutoReactions", self.prop("SensorsCheck", "Checked"))])
         self.event("DeviceCheck", "Changed", [self.prop("DeskBuddy1", "DeviceMonitoring", self.prop("DeviceCheck", "Checked"))])
+        self.event("BatteryIconCheck", "Changed", [self.prop("DeskBuddy1", "ShowBatteryIcon", self.prop("BatteryIconCheck", "Checked"))])
+        self.event("WifiIconCheck", "Changed", [self.prop("DeskBuddy1", "ShowWifiIcon", self.prop("WifiIconCheck", "Checked"))])
         self.event("PowerButton", "Click", [self.prop("DeviceCheck", "Checked", self.boolean(False)),
                    self.prop("DeskBuddy1", "DeviceMonitoring", self.boolean(False)),
                    self.method("DeskBuddy1", "SetPowerState", self.prop("BatteryInput", "Text"), self.prop("ChargeCheck", "Checked"))])
@@ -96,7 +100,7 @@ class Demo(ProjectBuilder):
 def main():
     b = Demo(); scm = b.screen(); bky = b.blocks()
     properties = "\n".join(["main=" + PACKAGE + ".Screen1", "name=" + PROJECT, "assets=../assets", "source=../src", "build=../build",
-                              "icon=", "versioncode=1", "versionname=1.0", "useslocation=False", "aname=Desk Buddy Demo", "androidminsdk=23",
+                              "icon=", "versioncode=2", "versionname=2.0", "useslocation=False", "aname=Desk Buddy Demo", "androidminsdk=23",
                               "sizing=Responsive", "theme=AppTheme.Light.DarkActionBar", "color.primary=&HFF000000", "color.primary.dark=&HFF000000", "color.accent=&HFF00E5FF", ""])
     source = "src/" + PACKAGE.replace(".", "/")
     entries = {"youngandroidproject/project.properties": properties.encode(), source + "/Screen1.scm": scm.encode(), source + "/Screen1.bky": bky.encode()}

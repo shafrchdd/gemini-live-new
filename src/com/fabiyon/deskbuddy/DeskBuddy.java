@@ -14,7 +14,7 @@ import com.google.appinventor.components.runtime.*;
 import com.google.appinventor.components.runtime.util.YailList;
 import java.util.*;
 
-@DesignerComponent(version=1, description="Independent cyan-eye desk buddy: layered emotions, reactions, autonomous idle animations, touch, motion, battery and Wi-Fi. Draws natively without an AI/network dependency.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
+@DesignerComponent(version=2, description="Independent cyan-eye desk buddy: layered emotions, reactions, autonomous idle animations, touch, motion, battery and Wi-Fi. Draws natively without an AI/network dependency.", category=ComponentCategory.EXTENSION, nonVisible=true, iconName="")
 @SimpleObject(external=true)
 @UsesPermissions(permissionNames="android.permission.ACCESS_NETWORK_STATE")
 public class DeskBuddy extends AndroidNonvisibleComponent implements OnResumeListener, OnStopListener, OnDestroyListener, Deleteable, SensorEventListener {
@@ -41,6 +41,7 @@ public class DeskBuddy extends AndroidNonvisibleComponent implements OnResumeLis
     public String emotion = "idle", reaction = "", conversation = "", previousAwake = "idle";
     public long reactionStart, reactionEnd, now, lastInteraction, nextIdle, nextBlink, blinkStart = -1000, pausedAt = -1;
     public boolean autonomous = true, naturalBlink = true, touching;
+    public boolean showBatteryIcon = true, showWifiIcon = true;
     public int sleepAfterSeconds = 120, batteryLevel = -1;
     public boolean plugged;
     public double speechLevel = -1;
@@ -202,6 +203,10 @@ public class DeskBuddy extends AndroidNonvisibleComponent implements OnResumeLis
   @DesignerProperty(editorType="boolean", defaultValue="True") @SimpleProperty(category=PropertyCategory.BEHAVIOR) public void SensorsEnabled(final boolean value) { action(new Runnable() { public void run() { sensorsEnabled = value; refresh(); } }); }
   @SimpleProperty(category=PropertyCategory.BEHAVIOR) public boolean DeviceMonitoring() { return deviceMonitoring; }
   @DesignerProperty(editorType="boolean", defaultValue="True") @SimpleProperty(category=PropertyCategory.BEHAVIOR) public void DeviceMonitoring(final boolean value) { action(new Runnable() { public void run() { deviceMonitoring = value; if (!value) wifiKnown = false; if (!value) { for (String state : SYSTEMS) brain.overlay(state, false, true); brain.plugged = false; brain.batteryLevel = -1; } refresh(); emit(); } }); }
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Show or hide the battery and draining symbols without disabling monitoring or reactions.") public boolean ShowBatteryIcon() { return brain.showBatteryIcon; }
+  @DesignerProperty(editorType="boolean", defaultValue="True") @SimpleProperty(category=PropertyCategory.BEHAVIOR) public void ShowBatteryIcon(final boolean value) { change(new Runnable() { public void run() { brain.showBatteryIcon = value; } }); }
+  @SimpleProperty(category=PropertyCategory.BEHAVIOR, description="Show or hide the Wi-Fi connected/disconnected symbol without disabling monitoring or reactions.") public boolean ShowWifiIcon() { return brain.showWifiIcon; }
+  @DesignerProperty(editorType="boolean", defaultValue="True") @SimpleProperty(category=PropertyCategory.BEHAVIOR) public void ShowWifiIcon(final boolean value) { change(new Runnable() { public void run() { brain.showWifiIcon = value; } }); }
   @SimpleProperty(category=PropertyCategory.BEHAVIOR) public int FramesPerSecond() { return fps; }
   @SimpleProperty(category=PropertyCategory.BEHAVIOR) public boolean KeepScreenOn() { return keepScreenOn; }
   @DesignerProperty(editorType="boolean", defaultValue="False") @SimpleProperty(category=PropertyCategory.BEHAVIOR) public void KeepScreenOn(final boolean value) { action(new Runnable() { public void run() { keepScreenOn = value; refresh(); } }); }
@@ -481,17 +486,17 @@ public class DeskBuddy extends AndroidNonvisibleComponent implements OnResumeLis
     }
     void overlays(Canvas c,Brain b,String v,float t) {
       boolean critical=b.has("critical_battery")||v.equals("critical_battery"), low=b.has("low_battery")||v.equals("low_battery"), full=b.has("fully_charged")||v.equals("fully_charged");
-      if(b.batteryLevel>=0||critical||low||full){color(critical||low?0xFFFF4865:full?0xFF57F28B:0xFF00E5FF);if(!critical||sin(t*5)>-.4){paint.setStyle(Paint.Style.STROKE);box(c,0,.43f,.18f,.07f,.009f);paint.setStyle(Paint.Style.FILL);box(c,.10f,.43f,.018f,.029f,.003f);float level=b.batteryLevel<0?(full?1:.1f):b.batteryLevel/100f;box(c,-.074f+.074f*level,.43f,.148f*level,.043f,.003f);}}
+      if(b.showBatteryIcon&&(b.batteryLevel>=0||critical||low||full)){color(critical||low?0xFFFF4865:full?0xFF57F28B:0xFF00E5FF);if(!critical||sin(t*5)>-.4){paint.setStyle(Paint.Style.STROKE);box(c,0,.43f,.18f,.07f,.009f);paint.setStyle(Paint.Style.FILL);box(c,.10f,.43f,.018f,.029f,.003f);float level=b.batteryLevel<0?(full?1:.1f):b.batteryLevel/100f;box(c,-.074f+.074f*level,.43f,.148f*level,.043f,.003f);}}
       color(0xFF00E5FF);
       if(b.has("listening")||v.equals("listening")){for(int i=0;i<4;i++){float h=.025f+.065f*Math.abs(sin(t*7+i));box(c,-.055f+i*.037f,.33f,.016f,h,.007f);}}
       if(b.has("microphone_muted")){circle(c,-.36f,.28f,.035f);line(c,-.39f,.24f,-.32f,.32f);}
       if(b.has("camera_active")){paint.setStyle(Paint.Style.STROKE);box(c,.34f,.27f,.09f,.055f,.009f);circle(c,.34f,.27f,.016f);paint.setStyle(Paint.Style.FILL);}
-      if(b.has("wifi_connected")||b.has("wifi_disconnected")||in(v,"wifi_connected wifi_disconnected")){boolean off=b.has("wifi_disconnected")||v.equals("wifi_disconnected");paint.setStyle(Paint.Style.STROKE);for(int i=1;i<=3;i++){rect.set(-.38f-i*.018f,-.29f-i*.018f,-.38f+i*.018f,-.29f+i*.018f);c.drawArc(rect,220,100,false,paint);}paint.setStyle(Paint.Style.FILL);if(off)line(c,-.44f,-.34f,-.32f,-.23f);}
+      if(b.showWifiIcon&&(b.has("wifi_connected")||b.has("wifi_disconnected")||in(v,"wifi_connected wifi_disconnected"))){boolean off=b.has("wifi_disconnected")||v.equals("wifi_disconnected");paint.setStyle(Paint.Style.STROKE);for(int i=1;i<=3;i++){rect.set(-.38f-i*.018f,-.29f-i*.018f,-.38f+i*.018f,-.29f+i*.018f);c.drawArc(rect,220,100,false,paint);}paint.setStyle(Paint.Style.FILL);if(off)line(c,-.44f,-.34f,-.32f,-.23f);}
       if(b.has("processing")||b.has("connecting")||b.has("reconnecting")||in(v,"processing connecting reconnecting")){for(int i=0;i<3;i++)circle(c,-.04f+i*.04f,.31f,.008f+.003f*sin(t*6-i));}
       if(b.has("notification")||v.equals("notification"))text(c,"!",.36f,.08f,.13f);
       if(b.has("ai_error")||v.equals("ai_error"))text(c,"?",-.36f,.08f,.13f);
       if(b.has("update")||v.equals("update")){line(c,.30f,.29f,.40f+.02f*sin(t*5),.39f);circle(c,.30f,.29f,.025f);}
-      if(b.has("battery_draining"))text(c,"↓",-.15f,.445f,.07f);
+      if(b.showBatteryIcon&&b.has("battery_draining"))text(c,"↓",-.15f,.445f,.07f);
     }
   }
 }
