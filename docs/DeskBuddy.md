@@ -77,3 +77,7 @@ python3 tools/validate_deskbuddy_demo.py
 The build uses the repository's pinned genuine Android/MIT annotation processors and JDK, generates component metadata and DEX, and packages `dist/com.fabiyon.deskbuddy.aix`. Python 3.12+, Git and initial network access are needed for those pinned build dependencies. The SVG tests need only the Java test doubles; no image-generation service is used or required.
 
 Local checks cover the production state machine, layered ownership, pause/resume deadlines, sleep/wake, touch-busy behavior, bounded callback backlog, power flags, motion heuristics and every catalog's drawing path. The AIA validator checks authentic signatures, component versions, wiring, embedded extension bytes and normal network-state permission. These checks do not execute Kodular Creator export or physical Android lifecycle/gesture/sensor APIs. On your phone, verify every picker, touch/long press/drag, real plugging/full/low power, sensor sensitivity, repeated start/stop/re-attach, and background/return. Confirm resource indicators and animation responsiveness over an extended session.
+
+## GeminiLive function JSON pack
+
+See [function declarations and Kodular wiring guide](../examples/deskbuddy/functions/README.md). The pack includes 17 declarations with complete enum values, plus ready-to-use name/description/parametersJson inputs for GeminiLive.AddFunction. Register only functions your FunctionCall handler implements.

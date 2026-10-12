@@ -1,0 +1,87 @@
+[
+  {
+    "name": "buddy_set_emotion",
+    "description": "Set the persistent avatar emotion to match the conversation. Use gently; do not manipulate the user with negative emotions.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"emotion\":{\"type\":\"string\",\"enum\":[\"idle\",\"happy\",\"excited\",\"sad\",\"angry\",\"bored\",\"curious\",\"confused\",\"shy\",\"love\",\"surprised\",\"scared\",\"proud\",\"guilty\",\"jealous\",\"disgusted\",\"frustrated\",\"calm\",\"sleepy\",\"dizzy\",\"mischievous\",\"focused\",\"embarrassed\",\"grateful\",\"crying\",\"sleeping\"],\"description\":\"Persistent base emotion.\"}},\"required\":[\"emotion\"]}"
+  },
+  {
+    "name": "buddy_play_reaction",
+    "description": "Play a short avatar gesture or idle animation without replacing its persistent emotion. Prefer 1000\u20134000 milliseconds.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"reaction\":{\"type\":\"string\",\"enum\":[\"idle\",\"happy\",\"excited\",\"sad\",\"angry\",\"bored\",\"curious\",\"confused\",\"shy\",\"love\",\"surprised\",\"scared\",\"proud\",\"guilty\",\"jealous\",\"disgusted\",\"frustrated\",\"calm\",\"sleepy\",\"dizzy\",\"mischievous\",\"focused\",\"embarrassed\",\"grateful\",\"crying\",\"sleeping\",\"wave\",\"nod\",\"shake_head\",\"laugh\",\"giggle\",\"clap\",\"dance\",\"jump\",\"celebrate\",\"facepalm\",\"wink\",\"blow_kiss\",\"hug\",\"think\",\"peek\",\"stretch\",\"yawn\",\"sneeze\",\"hiccup\",\"fall\",\"get_up\",\"spin\",\"shrug\",\"point\",\"look_around\",\"listen_closely\",\"cheer\",\"sleep\",\"charging\",\"fully_charged\",\"low_battery\",\"critical_battery\",\"battery_draining\",\"plugged_in\",\"unplugged\",\"wifi_connected\",\"wifi_disconnected\",\"connecting\",\"listening\",\"processing\",\"speaking\",\"ai_error\",\"reconnecting\",\"microphone_muted\",\"camera_active\",\"notification\",\"update\",\"shutdown\",\"startup\",\"understanding\",\"agreeing\",\"disagreeing\",\"searching\",\"remembering\",\"forgetful\",\"eureka\",\"uncertain\",\"apologizing\",\"encouraging\",\"comforting\",\"impressed\",\"suspicious\",\"sarcastic\",\"playful\",\"storytelling\",\"explaining\",\"waiting\",\"interrupted\",\"goodbye\",\"random_blink\",\"eye_tracking\",\"head_tilt\",\"look_left_right\",\"look_left\",\"look_right\",\"breathing\",\"foot_tapping\",\"whistling\",\"humming\",\"daydreaming\",\"playing\",\"reading\",\"gaming\",\"drinking_coffee\",\"eating\",\"waking_up\",\"exercising\",\"dancing_alone\",\"chasing_butterfly\",\"catching_falling_object\",\"screen_edge_peek\",\"attention_seeking\",\"getting_impatient\",\"reacting_to_touch\",\"reacting_to_drag\"],\"description\":\"Supported reaction, idle behavior, emotion or system preview.\"},\"duration_ms\":{\"type\":\"integer\",\"minimum\":250,\"maximum\":10000,\"description\":\"Animation duration in milliseconds.\"}},\"required\":[\"reaction\",\"duration_ms\"]}"
+  },
+  {
+    "name": "buddy_stop_reaction",
+    "description": "Clear the temporary reaction; preserve the base emotion and overlays.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  },
+  {
+    "name": "buddy_sleep",
+    "description": "Put the avatar into persistent sleeping mode when requested; this does not disconnect Gemini or mute the microphone.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  },
+  {
+    "name": "buddy_wake_up",
+    "description": "Wake the avatar and restore its preceding awake emotion.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  },
+  {
+    "name": "buddy_start",
+    "description": "Enable avatar animation and configured monitoring.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  },
+  {
+    "name": "buddy_stop",
+    "description": "Pause the avatar and its monitoring; this does not stop Gemini audio or disconnect Gemini.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  },
+  {
+    "name": "buddy_set_overlay",
+    "description": "Set or clear a manual visual overlay. It does not change hardware or connection state. Use real device/AI states only when supplied by the application; automatic overlays may remain after clearing a manual overlay.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"overlay\":{\"type\":\"string\",\"enum\":[\"charging\",\"fully_charged\",\"low_battery\",\"critical_battery\",\"battery_draining\",\"plugged_in\",\"unplugged\",\"wifi_connected\",\"wifi_disconnected\",\"connecting\",\"listening\",\"processing\",\"speaking\",\"ai_error\",\"reconnecting\",\"microphone_muted\",\"camera_active\",\"notification\",\"update\",\"shutdown\",\"startup\"],\"description\":\"Visual overlay name.\"},\"active\":{\"type\":\"boolean\",\"description\":\"True adds the manual overlay; false removes its manual source.\"}},\"required\":[\"overlay\",\"active\"]}"
+  },
+  {
+    "name": "buddy_set_conversation_state",
+    "description": "Show a conversation cue or application-reported AI activity. Empty state clears the conversation layer. Application events should own listening/speaking indicators.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"state\":{\"type\":\"string\",\"enum\":[\"\",\"understanding\",\"agreeing\",\"disagreeing\",\"searching\",\"remembering\",\"forgetful\",\"eureka\",\"uncertain\",\"apologizing\",\"encouraging\",\"comforting\",\"impressed\",\"suspicious\",\"sarcastic\",\"playful\",\"storytelling\",\"explaining\",\"waiting\",\"interrupted\",\"goodbye\",\"charging\",\"fully_charged\",\"low_battery\",\"critical_battery\",\"battery_draining\",\"plugged_in\",\"unplugged\",\"wifi_connected\",\"wifi_disconnected\",\"connecting\",\"listening\",\"processing\",\"speaking\",\"ai_error\",\"reconnecting\",\"microphone_muted\",\"camera_active\",\"notification\",\"update\",\"shutdown\",\"startup\"],\"description\":\"Conversation cue, reported system activity, or empty to clear.\"}},\"required\":[\"state\"]}"
+  },
+  {
+    "name": "buddy_set_boolean_setting",
+    "description": "Change a buddy preference when requested. Icon visibility does not stop monitoring. DeviceMonitoring=false clears automatic device overlays and battery data. KeepScreenOn requests an awake display only while the buddy is active.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"setting\":{\"type\":\"string\",\"enum\":[\"Enabled\",\"Autonomous\",\"NaturalBlink\",\"AutoReactions\",\"SensorsEnabled\",\"DeviceMonitoring\",\"KeepScreenOn\",\"ShowBatteryIcon\",\"ShowWifiIcon\"],\"description\":\"Exact DeskBuddy boolean property name.\"},\"enabled\":{\"type\":\"boolean\",\"description\":\"New property value.\"}},\"required\":[\"setting\",\"enabled\"]}"
+  },
+  {
+    "name": "buddy_set_frame_rate",
+    "description": "Set the avatar frame rate. Default 30; higher rates use more battery.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"minimum\":10,\"maximum\":60,\"description\":\"Set the avatar frame rate. Default 30; higher rates use more battery.\"}},\"required\":[\"value\"]}"
+  },
+  {
+    "name": "buddy_set_sleep_timeout",
+    "description": "Set inactivity before automatic avatar sleep in seconds. Zero disables automatic sleep.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":3600,\"description\":\"Set inactivity before automatic avatar sleep in seconds. Zero disables automatic sleep.\"}},\"required\":[\"value\"]}"
+  },
+  {
+    "name": "buddy_set_shake_threshold",
+    "description": "Set filtered shake sensitivity in m/s\u00b2. Higher values require stronger shaking.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"value\":{\"type\":\"number\",\"minimum\":4,\"maximum\":30,\"description\":\"Set filtered shake sensitivity in m/s\\u00b2. Higher values require stronger shaking.\"}},\"required\":[\"value\"]}"
+  },
+  {
+    "name": "buddy_set_speech_level",
+    "description": "Set avatar mouth amplitude only; does not produce audio. Application audio events should drive this rather than repeated model calls.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"level\":{\"type\":\"number\",\"minimum\":-1,\"maximum\":100,\"description\":\"-1 enables synthetic talking motion; 0\\u2013100 sets amplitude while speaking.\"}},\"required\":[\"level\"]}"
+  },
+  {
+    "name": "buddy_simulate_power",
+    "description": "Preview battery/charger visuals only when the user explicitly requests simulation. Disable real DeviceMonitoring first. Does not alter the actual device battery.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{\"level\":{\"type\":\"integer\",\"minimum\":0,\"maximum\":100,\"description\":\"Simulated battery percentage.\"},\"plugged\":{\"type\":\"boolean\",\"description\":\"Simulated charger connection.\"}},\"required\":[\"level\",\"plugged\"]}"
+  },
+  {
+    "name": "buddy_get_status",
+    "description": "Read avatar state and configured settings from the application. Do not invent status values.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  },
+  {
+    "name": "buddy_get_catalogs",
+    "description": "Retrieve all supported emotion, reaction, overlay, conversation and idle names.",
+    "parametersJson": "{\"type\":\"object\",\"properties\":{},\"required\":[]}"
+  }
+]
