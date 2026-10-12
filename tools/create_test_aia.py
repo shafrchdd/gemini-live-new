@@ -209,6 +209,9 @@ class ProjectBuilder:
                 self.enabled("StartButton", False), self.enabled("StopButton", False),
                 self.enabled("SendButton", False), self.enabled("StopAudioButton", False),
                 self.enabled("SendImageButton", False),
+                self.enabled("ToolAskButton", False), self.enabled("ToolReplyButton", False),
+                self.global_variable("toolCallId", self.literal("")),
+                self.global_variable("toolName", self.literal("")),
                 self.prop("LevelClock", "TimerEnabled", self.boolean(False)),
                 self.pending(False),
                 self.set_text("MicStatusLabel", "Microphone: stopped"),
@@ -283,6 +286,16 @@ class ProjectBuilder:
             label("MessageHeadingLabel", "Text test", FontBold="True"),
             c("MessageInput", "TextBox", Text="Hello. Please answer briefly.", Hint="Type a message for Gemini", MultiLine="True", Width="-2", FontSize="16"),
             c("TextRow", "HorizontalArrangement", children=[button("SendButton", "Send text", False), button("ClearButton", "Clear display")], Width="-2"),
+            label("ToolHeadingLabel", "Function-call test", FontBold="True"),
+            label("ToolInstructionsLabel", "Connect, then Ask for tool call. Inspect the arguments and ID, then Return tool result. Test one pending call at a time."),
+            button("ToolAskButton", "Ask for tool call", False),
+            label("ToolStatusLabel", "Tool: get_test_status (registered before Connect)"),
+            label("ToolNameLabel", "Function name: none"),
+            label("ToolArgumentsLabel", "Arguments JSON: none"),
+            label("ToolCallIdLabel", "Call ID: none"),
+            c("ToolResultInput", "TextBox", Text='{"status":"ok","source":"Kodular test app","extension_version":4}',
+              Hint="Tool result JSON", MultiLine="True", Width="-2", FontSize="16"),
+            button("ToolReplyButton", "Return tool result", False),
             label("InputHeadingLabel", "You said", FontBold="True"),
             label("InputTranscriptLabel", "", FontSize="16"),
             label("OutputHeadingLabel", "AI speech transcript", FontBold="True"),
@@ -299,7 +312,7 @@ class ProjectBuilder:
                       RawMessagesEnabled="False", EchoCancellation="True", NoiseSuppression="True",
                       MuteMicWhileSpeaking="True", AudioEnabled="True", Volume="100")
         props = {"$Name": "Screen1", "$Type": "Form", "$Version": VERSIONS["Form"], "Uuid": "0",
-                 "AppName": "Gemini Live Test v3", "Title": "Gemini Live Test v3", "Scrollable": "True",
+                 "AppName": "Gemini Live Test v4", "Title": "Gemini Live Test v4", "Scrollable": "True",
                  "Sizing": "Responsive", "BackgroundColor": "&HFFFFFFFF", "ShowListsAsJson": "True",
                  "Theme": "AppTheme.Light.DarkActionBar", "PrimaryColor": "&HFF245A81",
                  "PrimaryColorDark": "&HFF153951", "AccentColor": "&HFF007D77",
@@ -310,6 +323,8 @@ class ProjectBuilder:
     def blocks(self):
         self.declare_global("micStartPending", self.boolean(False), "40")
         self.declare_global("imagePath", self.literal(""), "950")
+        self.declare_global("toolCallId", self.literal(""), "1850")
+        self.declare_global("toolName", self.literal(""), "2750")
         self.event("Screen1", "Initialize", [
             self.prop("GeminiLive1", "RawMessagesEnabled", self.boolean(False)),
             self.prop("GeminiLive1", "AudioEnabled", self.boolean(True)),
@@ -331,11 +346,19 @@ class ProjectBuilder:
              self.prop("GeminiLive1", "Voice", self.prop("VoiceInput", "Text")),
              self.prop("GeminiLive1", "SystemInstruction", self.literal("You are a helpful voice assistant. Keep replies brief.")),
              self.method("Screen1", "HideKeyboard"),
+             self.global_variable("toolCallId", self.literal("")),
+             self.global_variable("toolName", self.literal("")),
+             self.enabled("ToolAskButton", False), self.enabled("ToolReplyButton", False),
+             self.set_text("ToolStatusLabel", "Tool registered; waiting for connection."),
+             self.method("GeminiLive1", "ClearFunctions"),
+             self.method("GeminiLive1", "AddFunction", self.literal("get_test_status"),
+                self.literal("Return the local Kodular test application's status. Call this tool when asked to test function calling."),
+                self.literal('{"type":"object","properties":{"request":{"type":"string","description":"Label for this status check"}},"required":["request"]}')),
              self.method("GeminiLive1", "Connect", key_trim)])])
         self.event("GeminiLive1", "Connected", [self.set_text("StatusLabel", "Connection: connected; waiting for SetupComplete...")])
         self.event("GeminiLive1", "SetupComplete", [
             self.set_text("StatusLabel", "Connection: ready"), self.enabled("StartButton", True),
-            self.enabled("SendButton", True), self.enabled("StopAudioButton", True),
+            self.enabled("SendButton", True), self.enabled("StopAudioButton", True), self.enabled("ToolAskButton", True),
             *self.photo_controls(),
             self.conditional(self.prop("AutoListenCheck", "Checked"), self.start_capture())])
         self.event("CameraButton", "Click", [
@@ -365,6 +388,34 @@ class ProjectBuilder:
             [self.set_text("ErrorLabel", "Connect and wait for SetupComplete before sending a photo.")])])
         self.event("GeminiLive1", "ImageSent", [
             self.set_text("ImageStatusLabel", "Photo sent. Waiting for Gemini..."), *self.photo_controls()])
+        self.event("ToolAskButton", "Click", [self.conditional(self.method("GeminiLive1", "IsReady"), [
+            self.set_text("ErrorLabel", ""), self.set_text("ToolStatusLabel", "Requested tool call; waiting for Gemini..."),
+            self.method("GeminiLive1", "SendText", self.literal("Call get_test_status exactly once with request equal to function-call-test. Wait for its result, then tell me the returned status briefly."))],
+            [self.set_text("ErrorLabel", "Connect and wait for SetupComplete first.")])])
+        self.event("GeminiLive1", "FunctionCall", [self.conditional(self.prop("ToolReplyButton", "Enabled"), [
+            self.method("GeminiLive1", "SendFunctionResult", self.parameter("callId"), self.parameter("name"),
+                self.literal('{"error":"Another test call is awaiting a manual result. Retry one call at a time."}'))], [
+            self.global_variable("toolCallId", self.parameter("callId")),
+            self.global_variable("toolName", self.parameter("name")),
+            self.prop("ToolNameLabel", "Text", self.join(self.literal("Function name: "), self.parameter("name"))),
+            self.prop("ToolArgumentsLabel", "Text", self.join(self.literal("Arguments JSON: "), self.parameter("argumentsJson"))),
+            self.prop("ToolCallIdLabel", "Text", self.join(self.literal("Call ID: "), self.parameter("callId"))),
+            self.set_text("ToolStatusLabel", "Call received. Inspect it, then Return tool result."),
+            self.enabled("ToolAskButton", False), self.enabled("ToolReplyButton", True)])])
+        self.event("ToolReplyButton", "Click", [self.conditional(self.method("GeminiLive1", "IsReady"), [
+            self.conditional(self.compare(self.length(self.global_variable("toolCallId")), "GT", self.number(0)), [
+                self.set_text("ErrorLabel", ""), self.enabled("ToolReplyButton", False),
+                self.method("GeminiLive1", "SendFunctionResult", self.global_variable("toolCallId"),
+                    self.global_variable("toolName"), self.prop("ToolResultInput", "Text")),
+                self.set_text("ToolStatusLabel", "Result submitted. Wait for Gemini; duplicate results are rejected."),
+                self.enabled("ToolAskButton", True)], [self.set_text("ErrorLabel", "No pending call ID to answer.")])],
+            [self.set_text("ErrorLabel", "Reconnect before testing another function call.")])])
+        self.event("GeminiLive1", "FunctionCallCancelled", [self.conditional(
+            self.compare(self.parameter("callId"), "EQ", self.global_variable("toolCallId")), [
+                self.global_variable("toolCallId", self.literal("")), self.global_variable("toolName", self.literal("")),
+                self.enabled("ToolReplyButton", False),
+                self.prop("ToolAskButton", "Enabled", self.method("GeminiLive1", "IsReady")),
+                self.set_text("ToolStatusLabel", "Call cancelled by Gemini; no result will be sent.")])])
         self.event("StartButton", "Click", [self.conditional(self.method("GeminiLive1", "IsReady"),
                    self.start_capture(), [self.set_text("ErrorLabel", "Connect and wait for SetupComplete first.")])])
         self.event("StopButton", "Click", [self.method("GeminiLive1", "StopListening"),
@@ -411,7 +462,10 @@ class ProjectBuilder:
                         self.conditional(self.pending(), [
                             self.conditional(self.compare(microphone_prefix, "EQ", self.number(1)), self.failed_capture())],
                             self.failed_capture())])])]),
-            *self.photo_controls()])
+            *self.photo_controls(),
+            self.conditional(self.method("GeminiLive1", "IsReady"), [
+                self.conditional(self.compare(self.length(self.global_variable("toolCallId")), "GT", self.number(0)),
+                    [self.enabled("ToolReplyButton", True)])])])
         self.event("Screen1", "PermissionDenied", [
             self.prop("ErrorLabel", "Text", self.join(self.literal("Permission denied: "), self.parameter("permissionName"),
                                                        self.literal(". Allow this permission for the installed app in Android settings, then retry.")))])
@@ -436,7 +490,7 @@ def main():
     properties = "\n".join([
         "main=" + PACKAGE + ".Screen1", "name=" + PROJECT, "assets=../assets", "source=../src",
         "build=../build", "icon=", "versioncode=4", "versionname=4.0", "useslocation=False",
-        "aname=Gemini Live Test v3", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
+        "aname=Gemini Live Test v4", "androidminsdk=23", "actionbar=True", "sizing=Responsive",
         "showlistsasjson=True", "theme=AppTheme.Light.DarkActionBar", "color.primary=&HFF245A81",
         "color.primary.dark=&HFF153951", "color.accent=&HFF007D77", "",
     ])

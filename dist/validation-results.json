@@ -20,7 +20,7 @@
   "physical_device_test": "not_run",
   "authenticated_live_api_test": "not_run",
   "extension_version": 4,
-  "aia_sha256": "fc16bb9f1299e3f6c8ea89787218f85648f1352cb91a414d106c94debade8258",
+  "aia_sha256": "937f4bb099fbfa87ab6feb73f70e078ab09d0439e92057142637bb5044826e96",
   "aia_structure_and_blocks": "passed",
   "kodular_import_test": "not_run",
   "kodular_apk_build_test": "not_run"

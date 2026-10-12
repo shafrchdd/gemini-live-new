@@ -475,6 +475,17 @@ def main():
             require(("GeminiLive1", "Disconnect") in methods(events["CameraButton", "Click"]), "Camera activity must reset connection")
 
         require(("GeminiLive1", "Connect") in methods(events["ConnectButton", "Click"]), "Connect button is not wired")
+        if "ToolAskButton" in components:
+            for key in (("ToolAskButton", "Click"), ("ToolReplyButton", "Click"),
+                        ("GeminiLive1", "FunctionCall"), ("GeminiLive1", "FunctionCallCancelled")):
+                require(key in events, "Missing function-test handler: " + str(key))
+            sequence = methods(events["ConnectButton", "Click"])
+            require(("GeminiLive1", "ClearFunctions") in sequence and ("GeminiLive1", "AddFunction") in sequence,
+                    "Function test must register its tool")
+            require(sequence.index(("GeminiLive1", "AddFunction")) < sequence.index(("GeminiLive1", "Connect")),
+                    "Tool must be registered before connection setup")
+            require(("GeminiLive1", "SendText") in methods(events["ToolAskButton", "Click"]), "Missing tool request prompt")
+            require(("GeminiLive1", "SendFunctionResult") in methods(events["ToolReplyButton", "Click"]), "Missing manual tool result")
         require(("GeminiLive1", "StartListening") not in methods(events["ConnectButton", "Click"]),
                 "Microphone start must wait for SetupComplete")
         require(("GeminiLive1", "StartListening") in methods(events["GeminiLive1", "SetupComplete"]),

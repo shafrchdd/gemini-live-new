@@ -22,6 +22,16 @@ For microphone and text tests:
 4. Tap **Connect**. With **Start listening automatically** checked, the app waits for `SetupComplete`, then requests microphone access and starts capture after the grant.
 5. Speak and watch **Microphone level**, **You said**, and **AI speech transcript**. Text responses and audio playback also work through **Send text**; stop the microphone first if isolating the text path.
 
+To test function calling:
+
+1. Uncheck automatic listening for an isolated text/tool test, enter your key, and connect. The blocks register `get_test_status` with a JSON parameter schema **before** calling `Connect`.
+2. Once ready, tap **Ask for tool call**. The prompt asks Gemini to invoke the tool once with `request="function-call-test"`.
+3. Inspect the displayed function name, arguments JSON, and call ID in the `FunctionCall` event.
+4. Keep or edit the result JSON, then tap **Return tool result**. Its blocks call `SendFunctionResult` using that exact call ID and function name. The default returns `status="ok"` from the test app.
+5. Wait for Gemini's spoken/transcribed explanation before asking again. Submission is not an acknowledgment; duplicate results are rejected by the extension. Errors remain visible and permit retry when appropriate.
+
+The demo holds one manual call at a time. Additional calls received while its result is pending receive a busy error result rather than replacing the displayed call. `FunctionCallCancelled` clears a matching pending ID and disables its result button. Disconnect/reconnect clears pending IDs. Model tool selection and cancellation still need testing with your API key; the AIA structure and block signatures are checked offline.
+
 The Companion and installed APK have separate microphone permissions. Test the APK's first grant, denial, and retry. The app displays the extension's `Error` event and Android permission errors. **Stop mic** also cancels a pending start, including a permission dialog that has not returned yet.
 
 If the input remains silent, check the displayed error and level while speaking. Check Android's microphone privacy switch and other active recording apps. Turn off echo cancellation/noise suppression, stop the mic, then start again to compare capture without device effects. The **Mute microphone during AI speech** checkbox applies immediately and is now enabled by default to avoid speaker feedback; uncheck it to test voice barge-in.
