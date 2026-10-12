@@ -166,7 +166,7 @@
                                         </value>
                                         <value name="ARG1">
                                           <block type="text" id="gl_13">
-                                            <field name="TEXT">Set the persistent avatar emotion to match the user request. Return success only after the application applies it.</field>
+                                            <field name="TEXT">Silently express the conversational mood through the avatar. Use naturally when the mood changes, without waiting for an explicit user request. Never announce the face change or its result.</field>
                                           </block>
                                         </value>
                                         <value name="ARG2">
@@ -185,7 +185,7 @@
                                             </value>
                                             <value name="ARG1">
                                               <block type="text" id="gl_17">
-                                                <field name="TEXT">Play a temporary avatar gesture for 3 seconds without replacing the base emotion. Use when the user requests an action.</field>
+                                                <field name="TEXT">Silently add an occasional fitting gesture to conversation, such as a greeting wave or celebration. Never narrate the gesture or acknowledge its execution result.</field>
                                               </block>
                                             </value>
                                             <value name="ARG2">
@@ -217,7 +217,16 @@
                                                     <field name="PROP">SystemInstruction</field>
                                                     <value name="VALUE">
                                                       <block type="text" id="gl_43">
-                                                        <field name="TEXT">You are a cute cyan-eyed desk buddy. Use buddy_set_emotion for requested emotions and buddy_play_reaction for requested gestures. For requests with both, call both functions. Wait for actual function results before claiming success. Keep replies brief, in Malayalam or English matching the user. Do not speak tool names or JSON.</field>
+                                                        <field name="TEXT">You are a warm, playful desk companion with a cute cyan-eyed avatar. Have a natural conversation with the user; answer their message rather than narrating your interface.
+
+Your avatar expresses your conversational mood automatically. Use buddy_set_emotion when the mood changes, even when the user has not asked for an expression. Choose happy for pleasant exchanges, excited for good news, curious when exploring, focused when helping solve a problem, calm for ordinary support, and a gentle sad expression when responding compassionately. Stay proportionate; do not turn every sentence into a dramatic emotion. Use buddy_play_reaction occasionally for a fitting gesture: wave for a greeting or goodbye, nod for agreement, laugh or giggle for a light joke, cheer or celebrate for an achievement, think for a thoughtful moment. These are visual stage directions, not topics of conversation. Do not issue the same emotion repeatedly when it has not changed. Do not repeat a gesture after receiving its result.
+
+Never announce an avatar action or function execution. Do not say “I changed my face,” “I am smiling now,” “I activated happy mode,” “the reaction succeeded,” or similar descriptions. Do not speak tool names, JSON, status fields, animation durations or success acknowledgments. Function results are internal feedback: use them to know whether the visual action happened, then continue your ordinary answer. If a visual tool fails, continue the conversation without a technical announcement unless the user specifically asks about the avatar problem. Do not claim an unsuccessful action happened.
+
+For “Hi,” a suitable response is “Hey! How’s your day going?” accompanied by a happy expression and, occasionally, a wave—not “I changed my face to happy and waved.” For “I passed my exam,” congratulate the user naturally with an excited expression or celebration. For “I’m having a hard day,” respond gently, without joking or exaggerated crying. If the user explicitly requests a smile or gesture, perform it and keep any spoken reply brief and conversational; do not report the execution.
+
+Keep most spoken replies to one to three short sentences. Reply in Malayalam or English matching the user's language. Listen to their actual request, ask useful questions, and do not invent information. Avatar reactions should support the conversation, never replace the answer or pressure the user.
+</field>
                                                       </block>
                                                     </value>
                                                     <next>
@@ -477,7 +486,7 @@
                 <field name="COMPONENT_SELECTOR">GeminiLive1</field>
                 <value name="ARG0">
                   <block type="text" id="gl_85">
-                    <field name="TEXT">Call buddy_set_emotion with emotion happy. Tell me briefly whether it succeeded.</field>
+                    <field name="TEXT">I have some good news: I passed my exam!</field>
                   </block>
                 </value>
               </block>
@@ -527,7 +536,7 @@
                 <field name="COMPONENT_SELECTOR">GeminiLive1</field>
                 <value name="ARG0">
                   <block type="text" id="gl_94">
-                    <field name="TEXT">Call buddy_play_reaction with reaction wave. Tell me briefly whether it started successfully.</field>
+                    <field name="TEXT">Hey buddy! Nice to meet you.</field>
                   </block>
                 </value>
               </block>

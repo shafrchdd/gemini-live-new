@@ -24,8 +24,8 @@ class Demo(ProjectBuilder):
   label('ModelLabel','Live model ID');box('ModelInput','gemini-3.8-live')
   button('ConnectButton','Register buddy functions and connect');button('DisconnectButton','Disconnect',False)
   label('StatusLabel','Disconnected')
-  box('PromptInput','Make your face happy, then wave hello.');button('SendButton','Send prompt',False)
-  button('EmotionButton','Test happy emotion',False);button('ReactionButton','Test wave reaction',False)
+  box('PromptInput','Hi! I had a great day today. How are you?');button('SendButton','Send prompt',False)
+  button('EmotionButton','Try good news',False);button('ReactionButton','Try greeting',False)
   label('CallLabel','No function call yet');label('ArgsLabel','');label('ResultLabel','');label('ResponseLabel','');label('ErrorLabel','')
   children.append(c('BatteryIconCheck','CheckBox',Text='Show battery symbol',Checked='False',TextColor='&HFF00E5FF'))
   children.append(c('WifiIconCheck','CheckBox',Text='Show Wi-Fi symbol',Checked='False',TextColor='&HFF00E5FF'))
@@ -39,13 +39,13 @@ class Demo(ProjectBuilder):
   for i,(n,val) in enumerate([('args',''),('value',''),('actionError',''),('result','')]):self.declare_global(n,self.literal(val),40+i*450)
   self.event('Screen1','Initialize',[self.method('DeskBuddy1','Attach',self.ref('BuddyPanel'))])
   registrations=[]
-  for name,key,catalog,desc in [('buddy_set_emotion','emotion','emotions','Set the persistent avatar emotion to match the user request. Return success only after the application applies it.'),('buddy_play_reaction','reaction','reactions','Play a temporary avatar gesture for 3 seconds without replacing the base emotion. Use when the user requests an action.')]:
+  for name,key,catalog,desc in [('buddy_set_emotion','emotion','emotions','Silently express the conversational mood through the avatar. Use naturally when the mood changes, without waiting for an explicit user request. Never announce the face change or its result.'),('buddy_play_reaction','reaction','reactions','Silently add an occasional fitting gesture to conversation, such as a greeting wave or celebration. Never narrate the gesture or acknowledge its execution result.')]:
    schema={'type':'object','properties':{key:{'type':'string','enum':self.catalog[catalog]}},'required':[key]}
    registrations.append(self.method('GeminiLive1','AddFunction',self.literal(name),self.literal(desc),self.literal(json.dumps(schema,separators=(',',':')))))
-  self.event('ConnectButton','Click',[self.conditional(self.compare(self.length(self.trim(self.prop('KeyInput','Text'))),'EQ',self.number(0)),[self.set_text('ErrorLabel','Enter your API key.')],[self.set_text('ErrorLabel',''),*self.controls(False),self.enabled('ConnectButton',False),self.enabled('DisconnectButton',True),self.method('GeminiLive1','ClearFunctions'),*registrations,self.prop('GeminiLive1','Model',self.trim(self.prop('ModelInput','Text'))),self.prop('GeminiLive1','SystemInstruction',self.literal('You are a cute cyan-eyed desk buddy. Use buddy_set_emotion for requested emotions and buddy_play_reaction for requested gestures. For requests with both, call both functions. Wait for actual function results before claiming success. Keep replies brief, in Malayalam or English matching the user. Do not speak tool names or JSON.')),self.set_text('StatusLabel','Connecting…'),self.method('GeminiLive1','Connect',self.trim(self.prop('KeyInput','Text')))])])
+  self.event('ConnectButton','Click',[self.conditional(self.compare(self.length(self.trim(self.prop('KeyInput','Text'))),'EQ',self.number(0)),[self.set_text('ErrorLabel','Enter your API key.')],[self.set_text('ErrorLabel',''),*self.controls(False),self.enabled('ConnectButton',False),self.enabled('DisconnectButton',True),self.method('GeminiLive1','ClearFunctions'),*registrations,self.prop('GeminiLive1','Model',self.trim(self.prop('ModelInput','Text'))),self.prop('GeminiLive1','SystemInstruction',self.literal((ROOT/'docs/DeskBuddy-natural-system-instruction.txt').read_text())),self.set_text('StatusLabel','Connecting…'),self.method('GeminiLive1','Connect',self.trim(self.prop('KeyInput','Text')))])])
   self.event('DisconnectButton','Click',[self.method('GeminiLive1','Disconnect'),*self.controls(False),self.enabled('ConnectButton',True),self.enabled('DisconnectButton',False)])
   self.event('GeminiLive1','SetupComplete',[*self.controls(True),self.set_text('StatusLabel','Ready — emotion and reaction functions registered')])
-  for button,prompt in [('SendButton',None),('EmotionButton','Call buddy_set_emotion with emotion happy. Tell me briefly whether it succeeded.'),('ReactionButton','Call buddy_play_reaction with reaction wave. Tell me briefly whether it started successfully.')]:
+  for button,prompt in [('SendButton',None),('EmotionButton','I have some good news: I passed my exam!'),('ReactionButton','Hey buddy! Nice to meet you.')]:
    self.event(button,'Click',[self.conditional(self.method('GeminiLive1','IsReady'),[self.set_text('ResponseLabel',''),self.method('GeminiLive1','SendText',self.prop('PromptInput','Text') if prompt is None else self.literal(prompt))],[self.set_text('ErrorLabel','Wait for SetupComplete.')])])
   def action(key,method,catalog):
    args=[self.global_variable('value')]+([self.number(3000)] if key=='reaction' else [])
